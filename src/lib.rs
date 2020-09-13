@@ -1,5 +1,6 @@
-//! This is a platform agnostic Rust driver for the LSM303AGR
-//! inertial measurement unit using the [`embedded-hal`] traits.
+//! This is a platform agnostic Rust driver for the LSM303AGR ultra-compact
+//! high-performance eCompass module: ultra-low-power 3D accelerometer and
+//! 3D magnetometer using the [`embedded-hal`] traits.
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
