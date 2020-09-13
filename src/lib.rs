@@ -51,7 +51,7 @@
 //! stabilization) applications in conjunction with camera modules, or in
 //! advanced gaming use cases.
 //!
-//! [Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-lsm303agr-ds000.pdf)
+//! Documents: [Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-lsm303agr-ds000.pdf) - [Application note](https://www.st.com/resource/en/application_note/dm00265383-ultracompact-highperformance-ecompass-module-based-on-the-lsm303agr-stmicroelectronics.pdf)
 //!
 //!
 //! ## Usage examples (see also examples folder)

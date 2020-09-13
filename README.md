@@ -38,7 +38,7 @@ detection and magnetic field detection.
 
 The magnetic and accelerometer blocks can be enabled or put into power-down mode separately.
 
-[Datasheet](https://www.st.com/resource/en/datasheet/lsm303agr.pdf)
+Documents: [Datasheet](https://www.st.com/resource/en/datasheet/lsm303agr.pdf) - [Application note](https://www.st.com/resource/en/application_note/dm00265383-ultracompact-highperformance-ecompass-module-based-on-the-lsm303agr-stmicroelectronics.pdf)
 
 ## Usage
 
