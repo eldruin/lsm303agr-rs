@@ -1,0 +1,85 @@
+use embedded_hal_mock::{
+    i2c::{Mock as I2cMock, Transaction as I2cTrans},
+    pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
+    spi::{Mock as SpiMock, Transaction as SpiTrans},
+};
+use lsm303agr::{interface, Lsm303agr};
+
+#[allow(unused)]
+pub const ACCEL_ADDR: u8 = 0b0011001;
+#[allow(unused)]
+pub const MAG_ADDR: u8 = 0b0011110;
+
+#[allow(unused)]
+pub const DEFAULT_CTRL_REG1_A: u8 = 0x7;
+
+pub struct Register;
+#[allow(unused)]
+impl Register {
+    pub const WHO_AM_I_A: u8 = 0x0F;
+    pub const CTRL_REG1_A: u8 = 0x20;
+    pub const CTRL_REG4_A: u8 = 0x23;
+    pub const WHO_AM_I_M: u8 = 0x4F;
+    pub const STATUS_REG_A: u8 = 0x27;
+    pub const OUT_X_L_A: u8 = 0x28;
+    pub const STATUS_REG_M: u8 = 0x67;
+}
+
+pub struct BitFlags;
+#[allow(unused)]
+impl BitFlags {
+    pub const SPI_RW: u8 = 1 << 7;
+    pub const SPI_MS: u8 = 1 << 6;
+
+    pub const LP_EN: u8 = 1 << 3;
+
+    pub const HR: u8 = 1 << 3;
+
+    pub const XDR: u8 = 1;
+    pub const YDR: u8 = 1 << 1;
+    pub const ZDR: u8 = 1 << 2;
+    pub const XYZDR: u8 = 1 << 3;
+    pub const XOR: u8 = 1 << 4;
+    pub const YOR: u8 = 1 << 5;
+    pub const ZOR: u8 = 1 << 6;
+    pub const XYZOR: u8 = 1 << 7;
+}
+
+#[allow(unused)]
+pub fn default_cs() -> PinMock {
+    PinMock::new(&[PinTrans::set(PinState::Low), PinTrans::set(PinState::High)])
+}
+
+#[allow(unused)]
+pub fn new_spi_accel(
+    transactions: &[SpiTrans],
+    accel_cs: PinMock,
+) -> Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>> {
+    Lsm303agr::new_with_spi(SpiMock::new(transactions), accel_cs, PinMock::new(&[]))
+}
+
+#[allow(unused)]
+pub fn new_spi_mag(
+    transactions: &[SpiTrans],
+    mag_cs: PinMock,
+) -> Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>> {
+    Lsm303agr::new_with_spi(SpiMock::new(transactions), PinMock::new(&[]), mag_cs)
+}
+
+#[allow(unused)]
+pub fn destroy_spi(sensor: Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>>) {
+    let (mut spi, mut accel_cs, mut mag_cs) = sensor.destroy();
+    spi.done();
+    accel_cs.done();
+    mag_cs.done();
+}
+
+#[allow(unused)]
+pub fn new_i2c(transactions: &[I2cTrans]) -> Lsm303agr<interface::I2cInterface<I2cMock>> {
+    Lsm303agr::new_with_i2c(I2cMock::new(transactions))
+}
+
+#[allow(unused)]
+pub fn destroy_i2c(sensor: Lsm303agr<interface::I2cInterface<I2cMock>>) {
+    sensor.destroy().done();
+}
