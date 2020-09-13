@@ -33,6 +33,7 @@ impl BitFlags {
 
     pub const LP_EN: u8 = 1 << 3;
 
+    pub const BDU: u8 = 1 << 7;
     pub const HR: u8 = 1 << 3;
 
     pub const XDR: u8 = 1;

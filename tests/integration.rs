@@ -74,3 +74,13 @@ fn spi_can_get_mag_id() {
     assert_eq!(mag_id, id);
     destroy_spi(sensor);
 }
+
+#[test]
+fn can_init() {
+    let mut sensor = new_i2c(&[I2cTrans::write(
+        ACCEL_ADDR,
+        vec![Register::CTRL_REG4_A, BF::BDU],
+    )]);
+    sensor.init().unwrap();
+    destroy_i2c(sensor);
+}

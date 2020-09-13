@@ -47,10 +47,10 @@ where
 {
     /// Initialize registers
     pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg1 = self.ctrl_reg1_a.with_high(BF::BDU);
+        let reg4 = self.ctrl_reg4_a.with_high(BF::BDU);
         self.iface
-            .write_accel_register(Register::CTRL_REG1_A, reg1.bits)?;
-        self.ctrl_reg1_a = reg1;
+            .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
+        self.ctrl_reg4_a = reg4;
         Ok(())
     }
 
