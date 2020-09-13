@@ -88,9 +88,7 @@ fn can_init_i2c() {
 #[test]
 fn can_init_spi() {
     let mut sensor = new_spi_accel(
-        &[SpiTrans::write(
-            vec![Register::CTRL_REG4_A, BF::BDU],
-        )],
+        &[SpiTrans::write(vec![Register::CTRL_REG4_A, BF::BDU])],
         default_cs(),
     );
     sensor.init().unwrap();
