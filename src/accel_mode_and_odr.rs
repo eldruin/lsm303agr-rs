@@ -133,8 +133,9 @@ fn check_accel_odr_is_compatible_with_mode<CommE, PinE>(
 
 #[cfg(test)]
 mod accel_odr_mode_tests {
-    use super::*;
-    use AccelOutputDataRate as ODR;
+    use super::check_accel_odr_is_compatible_with_mode;
+    use super::AccelMode;
+    use crate::AccelOutputDataRate as ODR;
 
     macro_rules! compatible {
         ($odr:ident, $power:ident) => {
