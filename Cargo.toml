@@ -10,14 +10,6 @@ keywords = ["inertial", "accelerometer", "gyroscope", "imu", "embedded-hal-drive
 categories = ["embedded", "hardware-support", "no-std"]
 homepage = "https://github.com/eldruin/lsm303agr-rs"
 documentation = "https://docs.rs/lsm303agr"
-include = [
-    "/**/*.rs",
-    "/Cargo.toml",
-    "/README.md",
-    "/CHANGELOG.md",
-    "/LICENSE-MIT",
-    "/LICENSE-APACHE",
-]
 edition = "2018"
 
 [badges]
