@@ -53,6 +53,53 @@
 //!
 //! [Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-lsm303agr-ds000.pdf)
 //!
+//!
+//! ## Usage examples (see also examples folder)
+//!
+//! To use this driver, import this crate and an `embedded_hal` implementation,
+//! then instantiate the appropriate device.
+//!
+//! Please find additional examples using hardware in this repository: [driver-examples]
+//!
+//! [driver-examples]: https://github.com/eldruin/driver-examples
+//!
+//! ### Connect through I2C, initialize and take some measurements
+//!
+//! ```no_run
+//! use linux_embedded_hal::I2cdev;
+//! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
+//!
+//! let dev = I2cdev::new("/dev/i2c-1").unwrap();
+//! let mut sensor = Lsm303agr::new_with_i2c(dev);
+//! sensor.init().unwrap();
+//! sensor.set_accel_odr(AccelOutputDataRate::Hz10).unwrap();
+//! loop {
+//!     if sensor.accel_status().unwrap().xyz_new_data {
+//!         let data = sensor.accel_data().unwrap();
+//!         println!("Acceleration: x {} y {} z {}", data.x, data.y, data.z);
+//!     }
+//! }
+//! ```
+//!
+//! ### Connect through SPI, initialize and take some measurements
+//!
+//! ```no_run
+//! use linux_embedded_hal::{Spidev, Pin};
+//! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
+//!
+//! let dev = Spidev::open("/dev/spidev0.0").unwrap();
+//! let accel_cs = Pin::new(17);
+//! let mag_cs = Pin::new(27);
+//! let mut sensor = Lsm303agr::new_with_spi(dev, accel_cs, mag_cs);
+//! sensor.init().unwrap();
+//! sensor.set_accel_odr(AccelOutputDataRate::Hz10).unwrap();
+//! loop {
+//!     if sensor.accel_status().unwrap().xyz_new_data {
+//!         let data = sensor.accel_data().unwrap();
+//!         println!("Acceleration: x {} y {} z {}", data.x, data.y, data.z);
+//!     }
+//! }
+//! ```
 
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
