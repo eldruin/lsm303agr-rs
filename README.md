@@ -10,15 +10,15 @@ high-performance eCompass module: ultra-low-power 3D accelerometer and
 3D magnetometer using the [`embedded-hal`] traits.
 
 This driver allows you to:
-- Connect through I2C or SPI. See: [`new_with_i2c()`].
-- Initialize the device. See: [`init()`].
+- Connect through I2C or SPI. See: `new_with_i2c()`.
+- Initialize the device. See: `init()`.
 - Accelerometer:
-    - Read accelerometer data. See: [`accel_data()`].
-    - Get the accelerometer status. See: [`accel_status()`].
-    - Get accelerometer ID. See: [`accelerometer_id()`].
+    - Read accelerometer data. See: `accel_data()`.
+    - Get the accelerometer status. See: `accel_status()`.
+    - Get accelerometer ID. See: `accelerometer_id()`.
 - Magnetometer:
-    - Get the magnetometer status. See: [`mag_status()`].
-    - Get magnetometer ID. See: [`magnetometer_id()`].
+    - Get the magnetometer status. See: `mag_status()`.
+    - Get magnetometer ID. See: `magnetometer_id()`.
 
 <!-- TODO
 [Introductory blog post]()
