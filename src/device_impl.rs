@@ -12,6 +12,7 @@ impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
             ctrl_reg1_a: Config { bits: 0x7 },
             ctrl_reg4_a: Config { bits: 0 },
             cfg_reg_a_m: Config { bits: 0x3 },
+            cfg_reg_c_m: Config { bits: 0 },
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -37,6 +38,7 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneSho
             ctrl_reg1_a: Config { bits: 0x7 },
             ctrl_reg4_a: Config { bits: 0 },
             cfg_reg_a_m: Config { bits: 0x3 },
+            cfg_reg_c_m: Config { bits: 0 },
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -56,10 +58,14 @@ where
 {
     /// Initialize registers
     pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg4 = self.ctrl_reg4_a.with_high(BF::BDU);
+        let reg4 = self.ctrl_reg4_a.with_high(BF::ACCEL_BDU);
         self.iface
             .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
         self.ctrl_reg4_a = reg4;
+        let regc = self.cfg_reg_c_m.with_high(BF::MAG_BDU);
+        self.iface
+            .write_mag_register(Register::CFG_REG_C_M, regc.bits)?;
+        self.cfg_reg_c_m = regc;
         Ok(())
     }
 

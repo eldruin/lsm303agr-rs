@@ -1,6 +1,6 @@
 use crate::{
     interface::{ReadData, WriteData},
-    mode, Config, Error, Lsm303agr, ModeChangeError, PhantomData, Register,
+    mode, Error, Lsm303agr, ModeChangeError, PhantomData, Register,
 };
 
 impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
@@ -19,6 +19,7 @@ where
                 ctrl_reg1_a: self.ctrl_reg1_a,
                 ctrl_reg4_a: self.ctrl_reg4_a,
                 cfg_reg_a_m: cfg.into(),
+                cfg_reg_c_m: self.cfg_reg_c_m,
                 accel_odr: None,
                 _mag_mode: PhantomData,
             }),
@@ -45,6 +46,7 @@ where
                 ctrl_reg1_a: self.ctrl_reg1_a,
                 ctrl_reg4_a: self.ctrl_reg4_a,
                 cfg_reg_a_m: cfg.into(),
+                cfg_reg_c_m: self.cfg_reg_c_m,
                 accel_odr: None,
                 _mag_mode: PhantomData,
             }),
