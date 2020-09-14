@@ -9,18 +9,22 @@
 //! - Initialize the device. See: [`init()`].
 //! - Accelerometer:
 //!     - Read accelerometer data. See: [`accel_data()`].
-//!     - Get the accelerometer status. See: [`accel_status()`].
+//!     - Get accelerometer status. See: [`accel_status()`].
+//!     - Set accelerometer output data rate. See: [`set_accel_odr()`].
+//!     - Set accelerometer mode. See: [`set_accel_mode()`].
 //!     - Get accelerometer ID. See: [`accelerometer_id()`].
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`].
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`].
-//!     - Set output data rate. See: [`set_mag_odr()`].
+//!     - Set magnetometer output data rate. See: [`set_mag_odr()`].
 //!     - Get magnetometer ID. See: [`magnetometer_id()`].
 //!
 //! [`new_with_i2c()`]: struct.Lsm303agr.html#method.new_with_i2c
 //! [`init()`]: struct.Lsm303agr.html#method.init
 //! [`accel_status()`]: struct.Lsm303agr.html#method.accel_status
 //! [`accel_data()`]: struct.Lsm303agr.html#method.accel_data
+//! [`set_accel_odr()`]: struct.Lsm303agr.html#method.set_accel_odr
+//! [`set_accel_mode()`]: struct.Lsm303agr.html#method.set_accel_mode
 //! [`mag_status()`]: struct.Lsm303agr.html#method.mag_status
 //! [`into_mag_continuous()`]: struct.Lsm303agr.html#method.into_mag_continuous
 //! [`set_mag_odr()`]: struct.Lsm303agr.html#method.set_mag_odr
