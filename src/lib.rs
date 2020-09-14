@@ -14,6 +14,7 @@
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`].
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`].
+//!     - Set output data rate. See: [`set_mag_odr()`].
 //!     - Get magnetometer ID. See: [`magnetometer_id()`].
 //!
 //! [`new_with_i2c()`]: struct.Lsm303agr.html#method.new_with_i2c
@@ -22,6 +23,7 @@
 //! [`accel_data()`]: struct.Lsm303agr.html#method.accel_data
 //! [`mag_status()`]: struct.Lsm303agr.html#method.mag_status
 //! [`into_mag_continuous()`]: struct.Lsm303agr.html#method.into_mag_continuous
+//! [`set_mag_odr()`]: struct.Lsm303agr.html#method.set_mag_odr
 //! [`accelerometer_id()`]: struct.Lsm303agr.html#method.accelerometer_id
 //! [`magnetometer_id()`]: struct.Lsm303agr.html#method.magnetometer_id
 //!
@@ -112,9 +114,11 @@ mod accel_mode_and_odr;
 mod device_impl;
 pub mod interface;
 mod mag_mode_change;
+mod magnetometer;
 mod types;
 pub use crate::types::{
-    mode, AccelMode, AccelOutputDataRate, Error, ModeChangeError, Status, UnscaledMeasurement,
+    mode, AccelMode, AccelOutputDataRate, Error, MagOutputDataRate, ModeChangeError, Status,
+    UnscaledMeasurement,
 };
 mod register_address;
 use crate::register_address::{BitFlags, Register};

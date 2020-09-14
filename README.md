@@ -19,6 +19,7 @@ This driver allows you to:
 - Magnetometer:
     - Get the magnetometer status. See: `mag_status()`.
     - Change into continuous/one-shot mode. See: `into_mag_continuous()`.
+    - Set output data rate. See: `set_mag_odr()`.
     - Get magnetometer ID. See: `magnetometer_id()`.
 
 <!-- TODO

@@ -75,6 +75,19 @@ pub enum AccelMode {
     HighResolution,
 }
 
+/// Magnetometer output data rate
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MagOutputDataRate {
+    /// 10 Hz
+    Hz10,
+    /// 20 Hz
+    Hz20,
+    /// 50 Hz
+    Hz50,
+    /// 100 Hz
+    Hz100,
+}
+
 /// Data status
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Status {

@@ -13,6 +13,9 @@ pub const MAG_ADDR: u8 = 0b0011110;
 #[allow(unused)]
 pub const DEFAULT_CTRL_REG1_A: u8 = 0x7;
 
+#[allow(unused)]
+pub const DEFAULT_CFG_REG_A_M: u8 = 0x3;
+
 pub struct Register;
 #[allow(unused)]
 impl Register {
