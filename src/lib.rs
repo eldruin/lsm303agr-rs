@@ -13,6 +13,7 @@
 //!     - Get accelerometer ID. See: [`accelerometer_id()`].
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`].
+//!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`].
 //!     - Get magnetometer ID. See: [`magnetometer_id()`].
 //!
 //! [`new_with_i2c()`]: struct.Lsm303agr.html#method.new_with_i2c
@@ -20,6 +21,7 @@
 //! [`accel_status()`]: struct.Lsm303agr.html#method.accel_status
 //! [`accel_data()`]: struct.Lsm303agr.html#method.accel_data
 //! [`mag_status()`]: struct.Lsm303agr.html#method.mag_status
+//! [`into_mag_continuous()`]: struct.Lsm303agr.html#method.into_mag_continuous
 //! [`accelerometer_id()`]: struct.Lsm303agr.html#method.accelerometer_id
 //! [`magnetometer_id()`]: struct.Lsm303agr.html#method.magnetometer_id
 //!
@@ -105,22 +107,28 @@
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 
+use core::marker::PhantomData;
 mod accel_mode_and_odr;
 mod device_impl;
 pub mod interface;
+mod mag_mode_change;
 mod types;
-pub use crate::types::{AccelMode, AccelOutputDataRate, Error, Status, UnscaledMeasurement};
+pub use crate::types::{
+    mode, AccelMode, AccelOutputDataRate, Error, ModeChangeError, Status, UnscaledMeasurement,
+};
 mod register_address;
 use crate::register_address::{BitFlags, Register};
 
 /// LSM303AGR device driver
 #[derive(Debug)]
-pub struct Lsm303agr<DI> {
+pub struct Lsm303agr<DI, MODE> {
     /// Digital interface: I2C or SPI
     iface: DI,
     ctrl_reg1_a: Config,
     ctrl_reg4_a: Config,
+    cfg_reg_a_m: Config,
     accel_odr: Option<AccelOutputDataRate>,
+    _mag_mode: PhantomData<MODE>,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]

@@ -3,7 +3,7 @@ use crate::{
     AccelMode, AccelOutputDataRate, BitFlags as BF, Error, Lsm303agr, Register,
 };
 
-impl<DI, CommE, PinE> Lsm303agr<DI>
+impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {

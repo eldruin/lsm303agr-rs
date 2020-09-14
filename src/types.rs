@@ -9,6 +9,23 @@ pub enum Error<CommE, PinE> {
     InvalidInputData,
 }
 
+/// All possible errors in this crate
+#[derive(Debug)]
+pub struct ModeChangeError<CommE, PinE, DEV> {
+    /// I²C / SPI communication error
+    pub error: Error<CommE, PinE>,
+    /// Original device without mode changed
+    pub dev: DEV,
+}
+
+/// Device operation modes
+pub mod mode {
+    /// Magnetometer one-shot (single) mode
+    pub struct MagOneShot;
+    /// Magnetometer continuous mode
+    pub struct MagContinuous;
+}
+
 /// Unscaled measurement
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct UnscaledMeasurement {

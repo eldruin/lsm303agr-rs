@@ -18,6 +18,7 @@ This driver allows you to:
     - Get accelerometer ID. See: `accelerometer_id()`.
 - Magnetometer:
     - Get the magnetometer status. See: `mag_status()`.
+    - Change into continuous/one-shot mode. See: `into_mag_continuous()`.
     - Get magnetometer ID. See: `magnetometer_id()`.
 
 <!-- TODO

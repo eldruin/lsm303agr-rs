@@ -1,26 +1,31 @@
 use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
-    BitFlags as BF, Config, Error, Lsm303agr, Register, Status, UnscaledMeasurement,
+    mode, BitFlags as BF, Config, Error, Lsm303agr, PhantomData, Register, Status,
+    UnscaledMeasurement,
 };
 
-impl<I2C> Lsm303agr<I2cInterface<I2C>> {
+impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
     /// Create new instance of the LSM303AGR device communicating through I2C.
     pub fn new_with_i2c(i2c: I2C) -> Self {
         Lsm303agr {
             iface: I2cInterface { i2c },
             ctrl_reg1_a: Config { bits: 0x7 },
             ctrl_reg4_a: Config { bits: 0 },
+            cfg_reg_a_m: Config { bits: 0x3 },
             accel_odr: None,
+            _mag_mode: PhantomData,
         }
     }
+}
 
+impl<I2C, MODE> Lsm303agr<I2cInterface<I2C>, MODE> {
     /// Destroy driver instance, return I2C bus.
     pub fn destroy(self) -> I2C {
         self.iface.i2c
     }
 }
 
-impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>> {
+impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneShot> {
     /// Create new instance of the LSM303AGR device communicating through SPI.
     pub fn new_with_spi(spi: SPI, chip_select_accel: CSXL, chip_select_mag: CSMAG) -> Self {
         Lsm303agr {
@@ -31,17 +36,21 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>> {
             },
             ctrl_reg1_a: Config { bits: 0x7 },
             ctrl_reg4_a: Config { bits: 0 },
+            cfg_reg_a_m: Config { bits: 0x3 },
             accel_odr: None,
+            _mag_mode: PhantomData,
         }
     }
+}
 
+impl<SPI, CSXL, CSMAG, MODE> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, MODE> {
     /// Destroy driver instance, return SPI bus instance and chip select pin.
     pub fn destroy(self) -> (SPI, CSXL, CSMAG) {
         (self.iface.spi, self.iface.cs_xl, self.iface.cs_mag)
     }
 }
 
-impl<DI, CommE, PinE> Lsm303agr<DI>
+impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
