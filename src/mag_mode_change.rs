@@ -16,8 +16,8 @@ where
             Err(error) => Err(ModeChangeError { error, dev: self }),
             Ok(_) => Ok(Lsm303agr {
                 iface: self.iface,
-                ctrl_reg1_a: Config { bits: 0x7 },
-                ctrl_reg4_a: Config { bits: 0 },
+                ctrl_reg1_a: self.ctrl_reg1_a,
+                ctrl_reg4_a: self.ctrl_reg4_a,
                 cfg_reg_a_m: cfg.into(),
                 accel_odr: None,
                 _mag_mode: PhantomData,
@@ -42,8 +42,8 @@ where
             Err(error) => Err(ModeChangeError { error, dev: self }),
             Ok(_) => Ok(Lsm303agr {
                 iface: self.iface,
-                ctrl_reg1_a: Config { bits: 0x7 },
-                ctrl_reg4_a: Config { bits: 0 },
+                ctrl_reg1_a: self.ctrl_reg1_a,
+                ctrl_reg4_a: self.ctrl_reg4_a,
                 cfg_reg_a_m: cfg.into(),
                 accel_odr: None,
                 _mag_mode: PhantomData,
