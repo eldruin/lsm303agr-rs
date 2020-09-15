@@ -1,6 +1,13 @@
 mod common;
-use crate::common::{destroy_i2c, new_i2c, Register, DEFAULT_CFG_REG_A_M, MAG_ADDR};
-use embedded_hal_mock::i2c::Transaction as I2cTrans;
+use crate::common::{
+    destroy_i2c, destroy_spi, new_i2c, new_spi_mag, BitFlags as BF, Register, DEFAULT_CFG_REG_A_M,
+    MAG_ADDR,
+};
+use embedded_hal_mock::{
+    i2c::Transaction as I2cTrans,
+    pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
+    spi::Transaction as SpiTrans,
+};
 use lsm303agr::{MagOutputDataRate as ODR, UnscaledMeasurement};
 use nb;
 
@@ -70,4 +77,42 @@ fn can_take_continuous_measurement() {
         }
     );
     destroy_i2c(sensor);
+}
+
+#[test]
+fn can_take_continuous_measurement_spi() {
+    let sensor = new_spi_mag(
+        &[
+            SpiTrans::write(vec![Register::CFG_REG_A_M, 0]),
+            SpiTrans::transfer(
+                vec![
+                    Register::OUTX_L_REG_M | BF::SPI_MS | BF::SPI_RW,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+                vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+            ),
+        ],
+        PinMock::new(&[
+            PinTrans::set(PinState::Low),
+            PinTrans::set(PinState::High),
+            PinTrans::set(PinState::Low),
+            PinTrans::set(PinState::High),
+        ]),
+    );
+    let mut sensor = sensor.into_mag_continuous().ok().unwrap();
+    let data = sensor.mag_data().unwrap();
+    assert_eq!(
+        data,
+        UnscaledMeasurement {
+            x: 0x2010,
+            y: 0x4030,
+            z: 0x6050
+        }
+    );
+    destroy_spi(sensor);
 }

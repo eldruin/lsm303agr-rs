@@ -1,8 +1,9 @@
 mod common;
 use crate::common::{
-    destroy_i2c, new_i2c, BitFlags as BF, Register, ACCEL_ADDR, DEFAULT_CTRL_REG1_A,
+    default_cs, destroy_i2c, destroy_spi, new_i2c, new_spi_accel, BitFlags as BF, Register,
+    ACCEL_ADDR, DEFAULT_CTRL_REG1_A,
 };
-use embedded_hal_mock::i2c::Transaction as I2cTrans;
+use embedded_hal_mock::{i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans};
 use lsm303agr::{AccelMode, UnscaledMeasurement};
 
 #[test]
@@ -22,6 +23,35 @@ fn can_get_10_bit_data() {
         }
     );
     destroy_i2c(sensor);
+}
+
+#[test]
+fn can_get_10_bit_data_spi() {
+    let mut sensor = new_spi_accel(
+        &[SpiTrans::transfer(
+            vec![
+                Register::OUT_X_L_A | BF::SPI_RW | BF::SPI_MS,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ],
+            vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+        )],
+        default_cs(),
+    );
+    let data = sensor.accel_data().unwrap();
+    assert_eq!(
+        data,
+        UnscaledMeasurement {
+            x: 0x2010 >> 6,
+            y: 0x4030 >> 6,
+            z: 0x6050 >> 6
+        }
+    );
+    destroy_spi(sensor);
 }
 
 #[test]
