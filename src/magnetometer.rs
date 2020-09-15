@@ -1,7 +1,8 @@
 use crate::{
     interface::{ReadData, WriteData},
-    Error, Lsm303agr, MagOutputDataRate, Register,
+    mode, Error, Lsm303agr, MagOutputDataRate, Register, UnscaledMeasurement,
 };
+use nb;
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
@@ -20,5 +21,50 @@ where
             .write_mag_register(Register::CFG_REG_A_M, cfg | mask)?;
         self.cfg_reg_a_m = (cfg | mask).into();
         Ok(())
+    }
+}
+
+impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagContinuous>
+where
+    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+{
+    /// Magnetometer data
+    pub fn mag_data(&mut self) -> Result<UnscaledMeasurement, Error<CommE, PinE>> {
+        let data = self
+            .iface
+            .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
+        Ok(UnscaledMeasurement {
+            x: data.0 as i16,
+            y: data.1 as i16,
+            z: data.2 as i16,
+        })
+    }
+}
+
+impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
+where
+    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+{
+    /// Magnetometer data
+    pub fn mag_data(&mut self) -> nb::Result<UnscaledMeasurement, Error<CommE, PinE>> {
+        let status = self.mag_status()?;
+        if status.xyz_new_data {
+            let data = self
+                .iface
+                .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
+            Ok(UnscaledMeasurement {
+                x: data.0 as i16,
+                y: data.1 as i16,
+                z: data.2 as i16,
+            })
+        } else {
+            let cfg = self.iface.read_mag_register(Register::CFG_REG_A_M)?;
+            if (cfg & 0x3) != 0x1 {
+                // start one-shot measurement
+                let cfg = (self.cfg_reg_a_m.bits & 0xFC) | 0x1;
+                self.iface.write_mag_register(Register::CFG_REG_A_M, cfg)?;
+            }
+            Err(nb::Error::WouldBlock)
+        }
     }
 }

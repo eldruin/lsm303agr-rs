@@ -95,6 +95,10 @@ pub trait ReadData: private::Sealed {
         &mut self,
         register: u8,
     ) -> Result<(u16, u16, u16), Self::Error>;
+
+    /// Read 3 u16 magnetometer registers
+    fn read_mag_3_double_registers(&mut self, register: u8)
+        -> Result<(u16, u16, u16), Self::Error>;
 }
 
 impl<I2C, E> ReadData for I2cInterface<I2C>
@@ -116,6 +120,13 @@ where
         register: u8,
     ) -> Result<(u16, u16, u16), Self::Error> {
         self.read_3_double_registers(ACCEL_ADDR, register)
+    }
+
+    fn read_mag_3_double_registers(
+        &mut self,
+        register: u8,
+    ) -> Result<(u16, u16, u16), Self::Error> {
+        self.read_3_double_registers(MAG_ADDR, register)
     }
 }
 
@@ -177,6 +188,16 @@ where
         self.cs_xl.set_low().map_err(Error::Pin)?;
         let result = self.read_3_double_registers(register);
         self.cs_xl.set_high().map_err(Error::Pin)?;
+        result
+    }
+
+    fn read_mag_3_double_registers(
+        &mut self,
+        register: u8,
+    ) -> Result<(u16, u16, u16), Self::Error> {
+        self.cs_mag.set_low().map_err(Error::Pin)?;
+        let result = self.read_3_double_registers(register);
+        self.cs_mag.set_high().map_err(Error::Pin)?;
         result
     }
 }

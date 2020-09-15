@@ -101,10 +101,10 @@ pub struct Status {
     pub z_overrun: bool,
     /// X,Y,Z-axis new data ready
     pub xyz_new_data: bool,
-    /// X-axis data overwrite
+    /// X-axis data new data ready
     pub x_new_data: bool,
-    /// Y-axis data overwrite
+    /// Y-axis data new data ready
     pub y_new_data: bool,
-    /// Z-axis data overwrite
+    /// Z-axis data new data ready
     pub z_new_data: bool,
 }

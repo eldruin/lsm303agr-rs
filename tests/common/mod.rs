@@ -28,6 +28,7 @@ impl Register {
     pub const CFG_REG_A_M: u8 = 0x60;
     pub const CFG_REG_C_M: u8 = 0x62;
     pub const STATUS_REG_M: u8 = 0x67;
+    pub const OUTX_L_REG_M: u8 = 0x68;
 }
 
 pub struct BitFlags;

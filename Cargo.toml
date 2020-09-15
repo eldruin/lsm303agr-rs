@@ -18,6 +18,7 @@ coveralls = { repository = "eldruin/lsm303agr-rs", branch = "master", service = 
 
 [dependencies]
 embedded-hal = "0.2.3"
+nb = "1"
 
 [dev-dependencies]
 linux-embedded-hal = "0.3"
