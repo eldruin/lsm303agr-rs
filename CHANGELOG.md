@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-...
+### Added
+- Support setting magnetometer output data rate
+- Support magnetometer mode change
+- Support reading magnetometer data
 
 ## [0.1.0] - 2020-09-13
 

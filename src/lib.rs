@@ -16,6 +16,7 @@
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`].
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`].
+//!     - Read magnetometer data. See: [`mag_data()`].
 //!     - Set magnetometer output data rate. See: [`set_mag_odr()`].
 //!     - Get magnetometer ID. See: [`magnetometer_id()`].
 //!
@@ -28,6 +29,7 @@
 //! [`mag_status()`]: struct.Lsm303agr.html#method.mag_status
 //! [`into_mag_continuous()`]: struct.Lsm303agr.html#method.into_mag_continuous
 //! [`set_mag_odr()`]: struct.Lsm303agr.html#method.set_mag_odr
+//! [`mag_data()`]: struct.Lsm303agr.html#method.mag_data
 //! [`accelerometer_id()`]: struct.Lsm303agr.html#method.accelerometer_id
 //! [`magnetometer_id()`]: struct.Lsm303agr.html#method.magnetometer_id
 //!
