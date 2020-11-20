@@ -2,7 +2,6 @@ use crate::{
     interface::{ReadData, WriteData},
     mode, Error, Lsm303agr, MagOutputDataRate, Register, UnscaledMeasurement,
 };
-use nb;
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
