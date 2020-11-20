@@ -13,7 +13,6 @@ documentation = "https://docs.rs/lsm303agr"
 edition = "2018"
 
 [badges]
-travis-ci = { repository = "eldruin/lsm303agr-rs", branch = "master" }
 coveralls = { repository = "eldruin/lsm303agr-rs", branch = "master", service = "github" }
 
 [dependencies]

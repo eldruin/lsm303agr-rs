@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/lsm303agr.svg)](https://crates.io/crates/lsm303agr)
 [![Docs](https://docs.rs/lsm303agr/badge.svg)](https://docs.rs/lsm303agr)
-[![Build Status](https://travis-ci.com/eldruin/lsm303agr-rs.svg?branch=master)](https://travis-ci.com/eldruin/lsm303agr-rs)
+[![Build Status](https://github.com/eldruin/lsm303agr-rs/workflows/Build/badge.svg)](https://github.com/eldruin/lsm303agr-rs/actions?query=workflow%3ABuild)
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/lsm303agr-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/lsm303agr-rs?branch=master)
 
 This is a platform agnostic Rust driver for the LSM303AGR ultra-compact
