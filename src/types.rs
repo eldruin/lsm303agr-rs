@@ -21,8 +21,10 @@ pub struct ModeChangeError<CommE, PinE, DEV> {
 /// Device operation modes
 pub mod mode {
     /// Magnetometer one-shot (single) mode
+    #[derive(Debug)]
     pub struct MagOneShot;
     /// Magnetometer continuous mode
+    #[derive(Debug)]
     pub struct MagContinuous;
 }
 
