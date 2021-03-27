@@ -12,9 +12,6 @@ homepage = "https://github.com/eldruin/lsm303agr-rs"
 documentation = "https://docs.rs/lsm303agr"
 edition = "2018"
 
-[badges]
-coveralls = { repository = "eldruin/lsm303agr-rs", branch = "master", service = "github" }
-
 [dependencies]
 embedded-hal = "0.2.3"
 nb = "1"
