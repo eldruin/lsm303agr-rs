@@ -74,7 +74,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           target: ${{ matrix.TARGET }}
           override: true
-          components: clippy, rustfmt
+          components: rustfmt
 
       - name: Doc
         uses: actions-rs/cargo@v1
@@ -86,6 +86,25 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [1.31.0]
+        TARGET:
+          - x86_64-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.TARGET }}
+          override: true
+          components: clippy
 
       - name: Clippy
         uses: actions-rs/clippy-check@v1
