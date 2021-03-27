@@ -158,7 +158,7 @@ impl Config {
             bits: self.bits & !mask,
         }
     }
-    fn is_high(&self, mask: u8) -> bool {
+    fn is_high(self, mask: u8) -> bool {
         (self.bits & mask) != 0
     }
 }
