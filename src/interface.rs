@@ -6,8 +6,8 @@ use embedded_hal::{
     digital::v2::OutputPin,
 };
 
-pub(crate) const ACCEL_ADDR: u8 = 0b0011001;
-pub(crate) const MAG_ADDR: u8 = 0b0011110;
+pub(crate) const ACCEL_ADDR: u8 = 0b001_1001;
+pub(crate) const MAG_ADDR: u8 = 0b001_1110;
 
 /// I2C interface
 #[derive(Debug)]
