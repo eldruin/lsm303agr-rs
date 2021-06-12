@@ -12,6 +12,9 @@ impl Register {
     pub const OUTX_L_REG_M: u8 = 0x68;
 }
 
+pub const WHO_AM_I_A_VAL: u8 = 0x33;
+pub const WHO_AM_I_M_VAL: u8 = 0x40;
+
 pub struct BitFlags;
 impl BitFlags {
     pub const SPI_RW: u8 = 1 << 7;
