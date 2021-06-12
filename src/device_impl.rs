@@ -1,7 +1,8 @@
 use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
-    mode, BitFlags as BF, Config, Error, Lsm303agr, PhantomData, Register, Status,
-    UnscaledMeasurement,
+    mode,
+    register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
+    BitFlags as BF, Config, Error, Lsm303agr, PhantomData, Register, Status, UnscaledMeasurement,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -108,9 +109,19 @@ where
         self.iface.read_accel_register(Register::WHO_AM_I_A)
     }
 
+    /// Read and verify the accelerometer device ID
+    pub fn accelerometer_is_detected(&mut self) -> Result<bool, Error<CommE, PinE>> {
+        Ok(self.accelerometer_id()? == WHO_AM_I_A_VAL)
+    }
+
     /// Get magnetometer device ID
     pub fn magnetometer_id(&mut self) -> Result<u8, Error<CommE, PinE>> {
         self.iface.read_mag_register(Register::WHO_AM_I_M)
+    }
+
+    /// Read and verify the magnetometer device ID
+    pub fn magnetometer_is_detected(&mut self) -> Result<bool, Error<CommE, PinE>> {
+        Ok(self.magnetometer_id()? == WHO_AM_I_M_VAL)
     }
 }
 
