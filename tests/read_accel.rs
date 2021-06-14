@@ -4,7 +4,7 @@ use crate::common::{
     ACCEL_ADDR, DEFAULT_CTRL_REG1_A,
 };
 use embedded_hal_mock::{i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans};
-use lsm303agr::{AccelMode, UnscaledMeasurement};
+use lsm303agr::{AccelMode, Measurement};
 
 #[test]
 fn can_get_10_bit_data() {
@@ -16,10 +16,10 @@ fn can_get_10_bit_data() {
     let data = sensor.accel_data().unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x2010 >> 6,
-            y: 0x4030 >> 6,
-            z: 0x6050 >> 6
+        Measurement {
+            x: 512, // ~= 0x2010 / (1 << 4)
+            y: 1024, // ~= 0x4030 / (1 << 4)
+            z: 1540, // ~= 0x6050 / (1 << 4)
         }
     );
     destroy_i2c(sensor);
@@ -45,10 +45,10 @@ fn can_get_10_bit_data_spi() {
     let data = sensor.accel_data().unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x2010 >> 6,
-            y: 0x4030 >> 6,
-            z: 0x6050 >> 6
+        Measurement {
+            x: 512, // ~= 0x2010 / (1 << 4),
+            y: 1024, // ~= 0x4030 / (1 << 4),
+            z: 1540, // ~= 0x6050 / (1 << 4),
         }
     );
     destroy_spi(sensor);
@@ -69,10 +69,10 @@ fn can_get_12_bit_data() {
     let data = sensor.accel_data().unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x2010 >> 4,
-            y: 0x4030 >> 4,
-            z: 0x6050 >> 4
+        Measurement {
+            x: 513, // == 0x2010 / (1 << 4),
+            y: 1027, // == 0x4030 / (1 << 4),
+            z: 1541, // == 0x6050 / (1 << 4),
         }
     );
     destroy_i2c(sensor);
@@ -96,10 +96,10 @@ fn can_get_8_bit_data() {
     let data = sensor.accel_data().unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x20,
-            y: 0x40,
-            z: 0x60
+        Measurement {
+            x: 512, // ~= 0x2010 / (1 << 4),
+            y: 1024, // ~= 0x4030 / (1 << 4),
+            z: 1536, // ~= 0x6050 / (1 << 4),
         }
     );
     destroy_i2c(sensor);
