@@ -123,8 +123,8 @@ mod mag_mode_change;
 mod magnetometer;
 mod types;
 pub use crate::types::{
-    mode, AccelMode, AccelOutputDataRate, Error, MagOutputDataRate, ModeChangeError, Status,
-    UnscaledMeasurement,
+    mode, AccelMode, AccelOutputDataRate, Error, MagOutputDataRate, Measurement, ModeChangeError,
+    Status,
 };
 mod register_address;
 use crate::register_address::{BitFlags, Register};

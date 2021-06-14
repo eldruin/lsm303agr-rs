@@ -8,7 +8,7 @@ use embedded_hal_mock::{
     pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
     spi::Transaction as SpiTrans,
 };
-use lsm303agr::{MagOutputDataRate as ODR, UnscaledMeasurement};
+use lsm303agr::{MagOutputDataRate as ODR, Measurement};
 use nb;
 
 macro_rules! set_mag_odr {
@@ -47,10 +47,10 @@ fn can_take_one_shot_measurement() {
     let data = nb::block!(sensor.mag_data()).unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x2010,
-            y: 0x4030,
-            z: 0x6050
+        Measurement {
+            x: 1231200,  // 0x2010 * 150
+            y: 2464800,  // 0x4030 * 150
+            z: 3698400,  // 0x6050 * 150
         }
     );
     destroy_i2c(sensor);
@@ -70,10 +70,10 @@ fn can_take_continuous_measurement() {
     let data = sensor.mag_data().unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x2010,
-            y: 0x4030,
-            z: 0x6050
+        Measurement {
+            x: 1231200,  // 0x2010 * 150
+            y: 2464800,  // 0x4030 * 150
+            z: 3698400,  // 0x6050 * 150
         }
     );
     destroy_i2c(sensor);
@@ -108,10 +108,10 @@ fn can_take_continuous_measurement_spi() {
     let data = sensor.mag_data().unwrap();
     assert_eq!(
         data,
-        UnscaledMeasurement {
-            x: 0x2010,
-            y: 0x4030,
-            z: 0x6050
+        Measurement {
+            x: 1231200,  // 0x2010 * 150
+            y: 2464800,  // 0x4030 * 150
+            z: 3698400,  // 0x6050 * 150
         }
     );
     destroy_spi(sensor);

@@ -28,15 +28,15 @@ pub mod mode {
     pub struct MagContinuous;
 }
 
-/// Unscaled measurement
+/// Measurement
 #[derive(Debug, Default, Clone, PartialEq)]
-pub struct UnscaledMeasurement {
+pub struct Measurement {
     /// X-axis data.
-    pub x: i16,
+    pub x: i32,
     /// Y-axis data.
-    pub y: i16,
+    pub y: i32,
     /// Z-axis data.
-    pub z: i16,
+    pub z: i32,
 }
 
 /// Accelerometer output data rate

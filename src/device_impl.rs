@@ -2,7 +2,7 @@ use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
     mode,
     register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
-    BitFlags as BF, Config, Error, Lsm303agr, PhantomData, Register, Status, UnscaledMeasurement,
+    BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData, Register, Status,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -78,23 +78,26 @@ where
     }
 
     /// Accelerometer data
-    pub fn accel_data(&mut self) -> Result<UnscaledMeasurement, Error<CommE, PinE>> {
+    ///
+    /// Returned in mg (milli-g) where 1g is 9.8m/s².
+    pub fn accel_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
         let data = self
             .iface
             .read_accel_3_double_registers(Register::OUT_X_L_A)?;
         let lp_enabled = self.ctrl_reg1_a.is_high(BF::LP_EN);
         let hr_enabled = self.ctrl_reg4_a.is_high(BF::HR);
-        let resolution_factor = if hr_enabled {
-            1 << 4
+        let (resolution_factor, scaling_factor) = if hr_enabled {
+            (1 << 4, 1)
         } else if lp_enabled {
-            1 << 8
+            (1 << 8, 16)
         } else {
-            1 << 6
+            (1 << 6, 4)
         };
-        let x = (data.0 as i16) / resolution_factor;
-        let y = (data.1 as i16) / resolution_factor;
-        let z = (data.2 as i16) / resolution_factor;
-        Ok(UnscaledMeasurement { x, y, z })
+        let x = (data.0 as i16 as i32) / resolution_factor * scaling_factor;
+        let y = (data.1 as i16 as i32) / resolution_factor * scaling_factor;
+        let z = (data.2 as i16 as i32) / resolution_factor * scaling_factor;
+
+        Ok(Measurement { x, y, z })
     }
 
     /// Magnetometer status
