@@ -81,18 +81,46 @@ where
     ///
     /// Returned in mg (milli-g) where 1g is 9.8m/s².
     pub fn accel_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
+        use crate::AccelMode::*;
+        use crate::AccelScale::*;
+
         let data = self
             .iface
             .read_accel_3_double_registers(Register::OUT_X_L_A)?;
-        let lp_enabled = self.ctrl_reg1_a.is_high(BF::LP_EN);
-        let hr_enabled = self.ctrl_reg4_a.is_high(BF::HR);
-        let (resolution_factor, scaling_factor) = if hr_enabled {
-            (1 << 4, 1)
-        } else if lp_enabled {
-            (1 << 8, 16)
-        } else {
-            (1 << 6, 4)
+        let mode = self.get_accel_mode();
+        let scale = self.get_accel_scale();
+
+        let (resolution_factor, scaling_factor) = match mode {
+            PowerDown => (1, 0),
+            HighResolution => (
+                1 << 4,
+                match scale {
+                    Scale2g => 1,
+                    Scale4g => 2,
+                    Scale8g => 4,
+                    Scale16g => 8,
+                },
+            ),
+            LowPower => (
+                1 << 8,
+                match scale {
+                    Scale2g => 16,
+                    Scale4g => 32,
+                    Scale8g => 64,
+                    Scale16g => 128,
+                },
+            ),
+            Normal => (
+                1 << 6,
+                match scale {
+                    Scale2g => 4,
+                    Scale4g => 8,
+                    Scale8g => 16,
+                    Scale16g => 32,
+                },
+            ),
         };
+
         let x = (data.0 as i16 as i32) / resolution_factor * scaling_factor;
         let y = (data.1 as i16 as i32) / resolution_factor * scaling_factor;
         let z = (data.2 as i16 as i32) / resolution_factor * scaling_factor;

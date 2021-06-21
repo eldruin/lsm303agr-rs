@@ -77,6 +77,19 @@ pub enum AccelMode {
     HighResolution,
 }
 
+/// Accelerometer scaling factor
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AccelScale {
+    /// Plus or minus 2g
+    Scale2g,
+    /// Plus or minus 4g
+    Scale4g,
+    /// Plus or minus 8g
+    Scale8g,
+    /// Plus or minus 16g
+    Scale16g,
+}
+
 /// Magnetometer output data rate
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MagOutputDataRate {

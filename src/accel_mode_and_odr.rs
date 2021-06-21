@@ -1,6 +1,6 @@
 use crate::{
     interface::{ReadData, WriteData},
-    AccelMode, AccelOutputDataRate, BitFlags as BF, Error, Lsm303agr, Register,
+    AccelMode, AccelOutputDataRate, AccelScale, BitFlags as BF, Error, Lsm303agr, Register,
 };
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
@@ -81,6 +81,54 @@ where
             }
         }
         Ok(())
+    }
+
+    /// Get the accelerometer mode
+    pub fn get_accel_mode(&mut self) -> AccelMode {
+        let power_down = (self.ctrl_reg1_a.bits >> 4 & 0xf) == 0;
+        let lp_enabled = self.ctrl_reg1_a.is_high(BF::LP_EN);
+        let hr_enabled = self.ctrl_reg4_a.is_high(BF::HR);
+
+        if power_down {
+            AccelMode::PowerDown
+        } else if hr_enabled {
+            AccelMode::HighResolution
+        } else if lp_enabled {
+            AccelMode::LowPower
+        } else {
+            AccelMode::Normal
+        }
+    }
+
+    /// Set accelerometer scaling factor
+    ///
+    /// This changes the scale at which the acceleration is read.
+    /// Accel2g for example can return values between -2g and +2g
+    /// where g is the gravity of the earth (~9.82 m/s²).
+    pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE, PinE>> {
+        let fs = match scale {
+            AccelScale::Scale2g => 0b00,
+            AccelScale::Scale4g => 0b01,
+            AccelScale::Scale8g => 0b10,
+            AccelScale::Scale16g => 0b11,
+        };
+        let reg4 = self.ctrl_reg4_a.bits & !(0b11 << 4) | (fs << 4);
+        self.iface
+            .write_accel_register(Register::CTRL_REG4_A, reg4)?;
+        self.ctrl_reg4_a = reg4.into();
+        Ok(())
+    }
+
+    /// Get accelerometer scaling factor
+    pub fn get_accel_scale(&self) -> AccelScale {
+        let fs = (self.ctrl_reg4_a.bits & (0b11 << 4)) >> 4;
+        match fs {
+            0b00 => AccelScale::Scale2g,
+            0b01 => AccelScale::Scale4g,
+            0b10 => AccelScale::Scale8g,
+            0b11 => AccelScale::Scale16g,
+            _ => unreachable!("bit shift above means we cannot be here"),
+        }
     }
 
     fn enable_hr(&mut self) -> Result<(), Error<CommE, PinE>> {

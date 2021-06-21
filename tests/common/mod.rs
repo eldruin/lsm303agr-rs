@@ -31,6 +31,9 @@ impl Register {
     pub const OUTX_L_REG_M: u8 = 0x68;
 }
 
+#[allow(unused)]
+pub const HZ50: u8 = 4 << 4;
+
 pub struct BitFlags;
 #[allow(unused)]
 impl BitFlags {
@@ -56,7 +59,19 @@ impl BitFlags {
 
 #[allow(unused)]
 pub fn default_cs() -> PinMock {
-    PinMock::new(&[PinTrans::set(PinState::Low), PinTrans::set(PinState::High)])
+    default_cs_n(1)
+}
+
+#[allow(unused)]
+pub fn default_cs_n(n: usize) -> PinMock {
+    PinMock::new(
+        &[PinTrans::set(PinState::Low), PinTrans::set(PinState::High)]
+            .iter()
+            .cycle()
+            .cloned()
+            .take(n * 2)
+            .collect::<Vec<_>>(),
+    )
 }
 
 #[allow(unused)]

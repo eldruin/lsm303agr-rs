@@ -48,9 +48,9 @@ fn can_take_one_shot_measurement() {
     assert_eq!(
         data,
         Measurement {
-            x: 1231200,  // 0x2010 * 150
-            y: 2464800,  // 0x4030 * 150
-            z: 3698400,  // 0x6050 * 150
+            x: 1231200, // 0x2010 * 150
+            y: 2464800, // 0x4030 * 150
+            z: 3698400, // 0x6050 * 150
         }
     );
     destroy_i2c(sensor);
@@ -71,9 +71,9 @@ fn can_take_continuous_measurement() {
     assert_eq!(
         data,
         Measurement {
-            x: 1231200,  // 0x2010 * 150
-            y: 2464800,  // 0x4030 * 150
-            z: 3698400,  // 0x6050 * 150
+            x: 1231200, // 0x2010 * 150
+            y: 2464800, // 0x4030 * 150
+            z: 3698400, // 0x6050 * 150
         }
     );
     destroy_i2c(sensor);
@@ -109,9 +109,9 @@ fn can_take_continuous_measurement_spi() {
     assert_eq!(
         data,
         Measurement {
-            x: 1231200,  // 0x2010 * 150
-            y: 2464800,  // 0x4030 * 150
-            z: 3698400,  // 0x6050 * 150
+            x: 1231200, // 0x2010 * 150
+            y: 2464800, // 0x4030 * 150
+            z: 3698400, // 0x6050 * 150
         }
     );
     destroy_spi(sensor);
