@@ -145,3 +145,23 @@ fn can_set_mode_low_power() {
     sensor.set_accel_mode(Mode::LowPower).unwrap();
     destroy_i2c(sensor);
 }
+
+#[test]
+fn can_power_down_after_odr3() {
+    let mut sensor = new_i2c(&[
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![
+                Register::CTRL_REG1_A,
+                DEFAULT_CTRL_REG1_A | BF::LP_EN | 8 << 4,
+            ],
+        ),
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | BF::LP_EN],
+        ),
+    ]);
+    sensor.set_accel_odr(ODR::Khz1_620LowPower).unwrap();
+    sensor.set_accel_mode(Mode::PowerDown).unwrap();
+    destroy_i2c(sensor);
+}

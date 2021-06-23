@@ -73,7 +73,7 @@ where
                 self.enable_lp()?;
             }
             AccelMode::PowerDown => {
-                let reg1 = self.ctrl_reg1_a.bits & !(0x7 << 4);
+                let reg1 = self.ctrl_reg1_a.bits & !(0xf << 4);
                 self.iface
                     .write_accel_register(Register::CTRL_REG1_A, reg1)?;
                 self.ctrl_reg1_a = reg1.into();
