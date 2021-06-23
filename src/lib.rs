@@ -5,33 +5,21 @@
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
 //! This driver allows you to:
-//! - Connect through I2C or SPI. See: [`new_with_i2c()`].
-//! - Initialize the device. See: [`init()`].
+//! - Connect through I2C or SPI. See: [`new_with_i2c()`](Lsm303agr::new_with_i2c).
+//! - Initialize the device. See: [`init()`](Lsm303agr::init).
 //! - Accelerometer:
-//!     - Read accelerometer data. See: [`accel_data()`].
-//!     - Get accelerometer status. See: [`accel_status()`].
-//!     - Set accelerometer output data rate. See: [`set_accel_odr()`].
-//!     - Set accelerometer mode. See: [`set_accel_mode()`].
-//!     - Get accelerometer ID. See: [`accelerometer_id()`].
+//!     - Read accelerometer data. See: [`accel_data()`](Lsm303agr::accel_data).
+//!     - Get accelerometer status. See: [`accel_status()`](Lsm303agr::accel_status).
+//!     - Set accelerometer output data rate. See: [`set_accel_odr()`](Lsm303agr::set_accel_odr).
+//!     - Set accelerometer mode. See: [`set_accel_mode()`](Lsm303agr::set_accel_mode).
+//!     - Set accelerometer scale. See: [`set_accel_scale()`](Lsm303agr::set_accel_scale).
+//!     - Get accelerometer ID. See: [`accelerometer_id()`](Lsm303agr::accelerometer_id).
 //! - Magnetometer:
-//!     - Get the magnetometer status. See: [`mag_status()`].
-//!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`].
-//!     - Read magnetometer data. See: [`mag_data()`].
-//!     - Set magnetometer output data rate. See: [`set_mag_odr()`].
-//!     - Get magnetometer ID. See: [`magnetometer_id()`].
-//!
-//! [`new_with_i2c()`]: struct.Lsm303agr.html#method.new_with_i2c
-//! [`init()`]: struct.Lsm303agr.html#method.init
-//! [`accel_status()`]: struct.Lsm303agr.html#method.accel_status
-//! [`accel_data()`]: struct.Lsm303agr.html#method.accel_data
-//! [`set_accel_odr()`]: struct.Lsm303agr.html#method.set_accel_odr
-//! [`set_accel_mode()`]: struct.Lsm303agr.html#method.set_accel_mode
-//! [`mag_status()`]: struct.Lsm303agr.html#method.mag_status
-//! [`into_mag_continuous()`]: struct.Lsm303agr.html#method.into_mag_continuous
-//! [`set_mag_odr()`]: struct.Lsm303agr.html#method.set_mag_odr
-//! [`mag_data()`]: struct.Lsm303agr.html#method.mag_data
-//! [`accelerometer_id()`]: struct.Lsm303agr.html#method.accelerometer_id
-//! [`magnetometer_id()`]: struct.Lsm303agr.html#method.magnetometer_id
+//!     - Get the magnetometer status. See: [`mag_status()`](Lsm303agr::mag_status).
+//!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`](Lsm303agr::into_mag_continuous).
+//!     - Read magnetometer data. See: [`mag_data()`](Lsm303agr::mag_data).
+//!     - Set magnetometer output data rate. See: [`set_mag_odr()`](Lsm303agr::set_mag_odr).
+//!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
 //!
 //! <!-- TODO
 //! [Introductory blog post](TODO)
@@ -62,7 +50,7 @@
 //! stabilization) applications in conjunction with camera modules, or in
 //! advanced gaming use cases.
 //!
-//! Documents: [Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-lsm303agr-ds000.pdf) - [Application note](https://www.st.com/resource/en/application_note/dm00265383-ultracompact-highperformance-ecompass-module-based-on-the-lsm303agr-stmicroelectronics.pdf)
+//! Documents: [Datasheet](https://www.st.com/resource/en/datasheet/lsm303agr.pdf) - [Application note](https://www.st.com/resource/en/application_note/dm00265383-ultracompact-highperformance-ecompass-module-based-on-the-lsm303agr-stmicroelectronics.pdf)
 //!
 //!
 //! ## Usage examples (see also examples folder)
