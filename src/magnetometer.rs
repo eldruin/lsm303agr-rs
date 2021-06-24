@@ -1,6 +1,6 @@
 use crate::{
     interface::{ReadData, WriteData},
-    mode, Error, Lsm303agr, MagOutputDataRate, Measurement, Register,
+    mode, Error, Lsm303agr, MagOutputDataRate, Measurement, Register, UnscaledMeasurement,
 };
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
@@ -30,15 +30,28 @@ where
     /// Magnetometer data
     ///
     /// Returned in mg (milli-gauss).
+    ///
+    /// If you need the raw unscaled measurement see [`Lsm303agr::mag_data_unscaled`].
     pub fn mag_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
+        let unscaled = self.mag_data_unscaled()?;
+
+        Ok(Measurement {
+            x: scale_measurement(unscaled.x),
+            y: scale_measurement(unscaled.y),
+            z: scale_measurement(unscaled.z),
+        })
+    }
+
+    /// Unscaled magnetometer data
+    pub fn mag_data_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<CommE, PinE>> {
         let data = self
             .iface
             .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
 
-        Ok(Measurement {
-            x: scale_measurement(data.0 as i16),
-            y: scale_measurement(data.1 as i16),
-            z: scale_measurement(data.2 as i16),
+        Ok(UnscaledMeasurement {
+            x: data.0 as i16,
+            y: data.1 as i16,
+            z: data.2 as i16,
         })
     }
 }
@@ -49,15 +62,25 @@ where
 {
     /// Magnetometer data
     pub fn mag_data(&mut self) -> nb::Result<Measurement, Error<CommE, PinE>> {
+        let unscaled = self.mag_data_unscaled()?;
+        Ok(Measurement {
+            x: scale_measurement(unscaled.x),
+            y: scale_measurement(unscaled.y),
+            z: scale_measurement(unscaled.z),
+        })
+    }
+
+    /// Unscaled magnetometer data
+    pub fn mag_data_unscaled(&mut self) -> nb::Result<UnscaledMeasurement, Error<CommE, PinE>> {
         let status = self.mag_status()?;
         if status.xyz_new_data {
             let data = self
                 .iface
                 .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
-            Ok(Measurement {
-                x: scale_measurement(data.0 as i16),
-                y: scale_measurement(data.1 as i16),
-                z: scale_measurement(data.2 as i16),
+            Ok(UnscaledMeasurement {
+                x: data.0 as i16,
+                y: data.1 as i16,
+                z: data.2 as i16,
             })
         } else {
             let cfg = self.iface.read_mag_register(Register::CFG_REG_A_M)?;

@@ -39,6 +39,17 @@ pub struct Measurement {
     pub z: i32,
 }
 
+/// Unscaled easurement
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct UnscaledMeasurement {
+    /// X-axis data.
+    pub x: i16,
+    /// Y-axis data.
+    pub y: i16,
+    /// Z-axis data.
+    pub z: i16,
+}
+
 /// Accelerometer output data rate
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AccelOutputDataRate {
@@ -81,13 +92,13 @@ pub enum AccelMode {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AccelScale {
     /// Plus or minus 2g
-    Scale2g,
+    G2,
     /// Plus or minus 4g
-    Scale4g,
+    G4,
     /// Plus or minus 8g
-    Scale8g,
+    G8,
     /// Plus or minus 16g
-    Scale16g,
+    G16,
 }
 
 /// Magnetometer output data rate
