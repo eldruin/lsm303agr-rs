@@ -107,10 +107,10 @@ where
     /// where g is the gravity of the earth (~9.82 m/s²).
     pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE, PinE>> {
         let fs = match scale {
-            AccelScale::Scale2g => 0b00,
-            AccelScale::Scale4g => 0b01,
-            AccelScale::Scale8g => 0b10,
-            AccelScale::Scale16g => 0b11,
+            AccelScale::G2 => 0b00,
+            AccelScale::G4 => 0b01,
+            AccelScale::G8 => 0b10,
+            AccelScale::G16 => 0b11,
         };
         let reg4 = self.ctrl_reg4_a.bits & !(0b11 << 4) | (fs << 4);
         self.iface
@@ -123,10 +123,10 @@ where
     pub fn get_accel_scale(&self) -> AccelScale {
         let fs = (self.ctrl_reg4_a.bits & (0b11 << 4)) >> 4;
         match fs {
-            0b00 => AccelScale::Scale2g,
-            0b01 => AccelScale::Scale4g,
-            0b10 => AccelScale::Scale8g,
-            0b11 => AccelScale::Scale16g,
+            0b00 => AccelScale::G2,
+            0b01 => AccelScale::G4,
+            0b10 => AccelScale::G8,
+            0b11 => AccelScale::G16,
             _ => unreachable!("bit shift above means we cannot be here"),
         }
     }

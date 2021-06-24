@@ -2,7 +2,8 @@ use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
     mode,
     register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
-    BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData, Register, Status,
+    AccelMode, AccelScale, BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData,
+    Register, Status, UnscaledMeasurement,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -80,52 +81,63 @@ where
     /// Accelerometer data
     ///
     /// Returned in mg (milli-g) where 1g is 9.8m/s².
+    ///
+    /// If you need the raw unscaled measurement see [`Lsm303agr::accel_data_unscaled`].
     pub fn accel_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
-        use crate::AccelMode::*;
-        use crate::AccelScale::*;
+        let unscaled = self.accel_data_unscaled()?;
 
-        let data = self
-            .iface
-            .read_accel_3_double_registers(Register::OUT_X_L_A)?;
         let mode = self.get_accel_mode();
         let scale = self.get_accel_scale();
 
-        let (resolution_factor, scaling_factor) = match mode {
-            PowerDown => (1, 0),
-            HighResolution => (
-                1 << 4,
-                match scale {
-                    Scale2g => 1,
-                    Scale4g => 2,
-                    Scale8g => 4,
-                    Scale16g => 8,
-                },
-            ),
-            LowPower => (
-                1 << 8,
-                match scale {
-                    Scale2g => 16,
-                    Scale4g => 32,
-                    Scale8g => 64,
-                    Scale16g => 128,
-                },
-            ),
-            Normal => (
-                1 << 6,
-                match scale {
-                    Scale2g => 4,
-                    Scale4g => 8,
-                    Scale8g => 16,
-                    Scale16g => 32,
-                },
-            ),
+        let scaling_factor = match mode {
+            AccelMode::PowerDown => 0,
+            AccelMode::HighResolution => match scale {
+                AccelScale::G2 => 1,
+                AccelScale::G4 => 2,
+                AccelScale::G8 => 4,
+                AccelScale::G16 => 8,
+            },
+            AccelMode::LowPower => match scale {
+                AccelScale::G2 => 16,
+                AccelScale::G4 => 32,
+                AccelScale::G8 => 64,
+                AccelScale::G16 => 128,
+            },
+            AccelMode::Normal => match scale {
+                AccelScale::G2 => 4,
+                AccelScale::G4 => 8,
+                AccelScale::G8 => 16,
+                AccelScale::G16 => 32,
+            },
         };
 
-        let x = (data.0 as i16 as i32) / resolution_factor * scaling_factor;
-        let y = (data.1 as i16 as i32) / resolution_factor * scaling_factor;
-        let z = (data.2 as i16 as i32) / resolution_factor * scaling_factor;
+        Ok(Measurement {
+            x: (unscaled.x as i32) * scaling_factor,
+            y: (unscaled.y as i32) * scaling_factor,
+            z: (unscaled.z as i32) * scaling_factor,
+        })
+    }
 
-        Ok(Measurement { x, y, z })
+    /// Unscaled accelerometer data
+    pub fn accel_data_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<CommE, PinE>> {
+        let data = self
+            .iface
+            .read_accel_3_double_registers(Register::OUT_X_L_A)?;
+
+        let mode = self.get_accel_mode();
+
+        let resolution_factor = match mode {
+            AccelMode::PowerDown => 1,
+            AccelMode::HighResolution => 1 << 4,
+            AccelMode::LowPower => 1 << 8,
+            AccelMode::Normal => 1 << 6,
+        };
+
+        Ok(UnscaledMeasurement {
+            x: (data.0 as i16) / resolution_factor,
+            y: (data.1 as i16) / resolution_factor,
+            z: (data.2 as i16) / resolution_factor,
+        })
     }
 
     /// Magnetometer status

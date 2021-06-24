@@ -8,7 +8,7 @@ use embedded_hal_mock::{
     pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
     spi::Transaction as SpiTrans,
 };
-use lsm303agr::{MagOutputDataRate as ODR, Measurement};
+use lsm303agr::{MagOutputDataRate as ODR, Measurement, UnscaledMeasurement};
 use nb;
 
 macro_rules! set_mag_odr {
@@ -48,9 +48,36 @@ fn can_take_one_shot_measurement() {
     assert_eq!(
         data,
         Measurement {
-            x: 1231200, // 0x2010 * 150
-            y: 2464800, // 0x4030 * 150
-            z: 3698400, // 0x6050 * 150
+            x: 0x2010 * 150,
+            y: 0x4030 * 150,
+            z: 0x6050 * 150,
+        }
+    );
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_take_one_shot_unscaled_measurement() {
+    let mut sensor = new_i2c(&[
+        I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0]),
+        I2cTrans::write_read(MAG_ADDR, vec![Register::CFG_REG_A_M], vec![0]), // idle
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 1]),            // start measurement
+        I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0]),
+        I2cTrans::write_read(MAG_ADDR, vec![Register::CFG_REG_A_M], vec![1]), // continue waiting
+        I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0xFF]),
+        I2cTrans::write_read(
+            MAG_ADDR,
+            vec![Register::OUTX_L_REG_M | 0x80],
+            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+        ),
+    ]);
+    let data = nb::block!(sensor.mag_data_unscaled()).unwrap();
+    assert_eq!(
+        data,
+        UnscaledMeasurement {
+            x: 0x2010,
+            y: 0x4030,
+            z: 0x6050,
         }
     );
     destroy_i2c(sensor);
@@ -71,9 +98,32 @@ fn can_take_continuous_measurement() {
     assert_eq!(
         data,
         Measurement {
-            x: 1231200, // 0x2010 * 150
-            y: 2464800, // 0x4030 * 150
-            z: 3698400, // 0x6050 * 150
+            x: 0x2010 * 150,
+            y: 0x4030 * 150,
+            z: 0x6050 * 150,
+        }
+    );
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_take_continuous_unscaled_measurement() {
+    let sensor = new_i2c(&[
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 0]),
+        I2cTrans::write_read(
+            MAG_ADDR,
+            vec![Register::OUTX_L_REG_M | 0x80],
+            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+        ),
+    ]);
+    let mut sensor = sensor.into_mag_continuous().ok().unwrap();
+    let data = sensor.mag_data_unscaled().unwrap();
+    assert_eq!(
+        data,
+        UnscaledMeasurement {
+            x: 0x2010,
+            y: 0x4030,
+            z: 0x6050,
         }
     );
     destroy_i2c(sensor);
@@ -109,9 +159,9 @@ fn can_take_continuous_measurement_spi() {
     assert_eq!(
         data,
         Measurement {
-            x: 1231200, // 0x2010 * 150
-            y: 2464800, // 0x4030 * 150
-            z: 3698400, // 0x6050 * 150
+            x: 0x2010 * 150,
+            y: 0x4030 * 150,
+            z: 0x6050 * 150,
         }
     );
     destroy_spi(sensor);
