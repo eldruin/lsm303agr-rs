@@ -39,7 +39,7 @@ pub struct Measurement {
     pub z: i32,
 }
 
-/// Unscaled easurement
+/// Unscaled measurement
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct UnscaledMeasurement {
     /// X-axis data.
