@@ -103,7 +103,7 @@ where
     /// Set accelerometer scaling factor
     ///
     /// This changes the scale at which the acceleration is read.
-    /// Accel2g for example can return values between -2g and +2g
+    /// `AccelScale::G2` for example can return values between -2g and +2g
     /// where g is the gravity of the earth (~9.82 m/s²).
     pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE, PinE>> {
         let fs = match scale {
