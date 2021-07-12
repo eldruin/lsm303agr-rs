@@ -102,6 +102,7 @@
 
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
+#![doc(html_root_url = "https://docs.rs/lsm303agr/0.1.1")]
 
 use core::marker::PhantomData;
 mod accel_mode_and_odr;
