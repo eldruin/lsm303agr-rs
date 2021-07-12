@@ -9,7 +9,6 @@ use embedded_hal_mock::{
     spi::Transaction as SpiTrans,
 };
 use lsm303agr::{MagOutputDataRate as ODR, Measurement, UnscaledMeasurement};
-use nb;
 
 macro_rules! set_mag_odr {
     ($name:ident, $hz:ident, $value:expr) => {
