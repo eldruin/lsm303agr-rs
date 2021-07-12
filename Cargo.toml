@@ -13,7 +13,7 @@ documentation = "https://docs.rs/lsm303agr"
 edition = "2018"
 
 [dependencies]
-embedded-hal = "0.2.3"
+embedded-hal = "0.2.5"
 nb = "1"
 
 [dev-dependencies]
