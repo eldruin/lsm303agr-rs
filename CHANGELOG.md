@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ...
 
+
+### Added
+- Methods to verify device IDs. Thanks to @robyoung.
+- Support setting accelerometer scale via `set_accel_scale()`. Thanks to @robyoung.
+
+### Changed
+- [breaking-change] `accel_data()` and `mag_data()` now return scaled measurements.
+  To get unscaled data, use the methods `accel_data_unscaled()` and `mag_data_unscaled()`.
+  Thanks to @robyoung.
+
+### Fixed
+- Reset all ODR bits on powerdown. Thanks to @robyoung.
+
 ## [0.1.1] - 2021-03-27
 
 ### Added

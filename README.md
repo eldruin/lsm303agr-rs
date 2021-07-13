@@ -14,14 +14,17 @@ This driver allows you to:
 - Initialize the device. See: `init()`.
 - Accelerometer:
     - Read accelerometer data. See: `accel_data()`.
+    - Read accelerometer data unscaled. See: `accel_data_unscaled()`.
     - Get accelerometer status. See: `accel_status()`.
     - Set accelerometer output data rate. See: `set_accel_odr()`.
     - Set accelerometer mode. See: `set_accel_mode()`.
+    - Set accelerometer scale. See: `set_accel_scale()`.
     - Get accelerometer ID. See: `accelerometer_id()`.
 - Magnetometer:
     - Get the magnetometer status. See: `mag_status()`.
     - Change into continuous/one-shot mode. See: `into_mag_continuous()`.
     - Read magnetometer data. See: `mag_data()`.
+    - Read magnetometer data unscaled. See: `mag_data_unscaled()`.
     - Set magnetometer output data rate. See: `set_mag_odr()`.
     - Get magnetometer ID. See: `magnetometer_id()`.
 
