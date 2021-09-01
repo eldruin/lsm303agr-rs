@@ -18,7 +18,7 @@ nb = "1"
 
 [dev-dependencies]
 linux-embedded-hal = "0.3"
-embedded-hal-mock = "0.7"
+embedded-hal-mock = "0.8"
 
 [profile.release]
 lto = true
