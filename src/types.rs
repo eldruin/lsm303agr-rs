@@ -29,7 +29,7 @@ pub mod mode {
 }
 
 /// Measurement
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Measurement {
     /// X-axis data.
     pub x: i32,
@@ -40,7 +40,7 @@ pub struct Measurement {
 }
 
 /// Unscaled measurement
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct UnscaledMeasurement {
     /// X-axis data.
     pub x: i16,
