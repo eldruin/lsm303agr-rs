@@ -29,7 +29,7 @@ where
 {
     /// Magnetometer data
     ///
-    /// Returned in mg (milli-gauss).
+    /// Returned in nT (nanotesla)
     ///
     /// If you need the raw unscaled measurement see [`Lsm303agr::mag_data_unscaled`].
     pub fn mag_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
