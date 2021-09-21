@@ -60,7 +60,7 @@ impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Magnetometer data
+    /// Magnetometer data in nT (nanoteslas)
     pub fn mag_data(&mut self) -> nb::Result<Measurement, Error<CommE, PinE>> {
         let unscaled = self.mag_data_unscaled()?;
         Ok(Measurement {
