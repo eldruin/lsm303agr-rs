@@ -15,6 +15,7 @@ impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
             ctrl_reg4_a: Config { bits: 0 },
             cfg_reg_a_m: Config { bits: 0x3 },
             cfg_reg_c_m: Config { bits: 0 },
+            temp_cfg_reg_a: Config { bits: 0xC0 },
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -41,6 +42,7 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneSho
             ctrl_reg4_a: Config { bits: 0 },
             cfg_reg_a_m: Config { bits: 0x3 },
             cfg_reg_c_m: Config { bits: 0 },
+            temp_cfg_reg_a: Config { bits: 0xC0 },
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -61,6 +63,8 @@ where
     /// Initialize registers
     pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
         let reg4 = self.ctrl_reg4_a.with_high(BF::ACCEL_BDU);
+        self.iface
+            .write_accel_register(Register::TEMP_CFG_REG_A, self.temp_cfg_reg_a.bits)?;
         self.iface
             .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
         self.ctrl_reg4_a = reg4;
@@ -165,6 +169,28 @@ where
     /// Read and verify the magnetometer device ID
     pub fn magnetometer_is_detected(&mut self) -> Result<bool, Error<CommE, PinE>> {
         Ok(self.magnetometer_id()? == WHO_AM_I_M_VAL)
+    }
+
+    /// Read temperature sensor data
+    pub fn temp_data(&mut self) -> Result<i16, Error<CommE, PinE>> {
+        let data = self
+            .iface
+            .read_accel_double_register(Register::OUT_TEMP_L_A)?;
+        Ok(data as i16)
+    }
+
+    /// Read temperature sensor data as celsius
+    pub fn temp_celsius(&mut self) -> Result<f32, Error<CommE, PinE>> {
+        let data = self.temp_data()?;
+        let temp_offset = (data as f32) / 256.0;
+        let default_temp = 25.0;
+        Ok(temp_offset + default_temp)
+    }
+
+    /// Temperature sensor status
+    pub fn temp_has_new_data(&mut self) -> Result<bool, Error<CommE, PinE>> {
+        let status = self.iface.read_accel_register(Register::STATUS_REG_AUX_A)?;
+        Ok((status & BF::TDA) != 0)
     }
 }
 

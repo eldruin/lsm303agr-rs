@@ -129,6 +129,7 @@ pub struct Lsm303agr<DI, MODE> {
     ctrl_reg4_a: Config,
     cfg_reg_a_m: Config,
     cfg_reg_c_m: Config,
+    temp_cfg_reg_a: Config,
     accel_odr: Option<AccelOutputDataRate>,
     _mag_mode: PhantomData<MODE>,
 }

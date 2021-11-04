@@ -89,7 +89,8 @@ pub trait ReadData: private::Sealed {
     fn read_accel_register(&mut self, register: u8) -> Result<u8, Self::Error>;
     /// Read an u8 magnetometer register
     fn read_mag_register(&mut self, register: u8) -> Result<u8, Self::Error>;
-
+    /// Read an u16 accelerometer register
+    fn read_accel_double_register(&mut self, register: u8) -> Result<u16, Self::Error>;
     /// Read 3 u16 accelerometer registers
     fn read_accel_3_double_registers(
         &mut self,
@@ -113,6 +114,10 @@ where
 
     fn read_mag_register(&mut self, register: u8) -> Result<u8, Self::Error> {
         self.read_register(MAG_ADDR, register)
+    }
+
+    fn read_accel_double_register(&mut self, register: u8) -> Result<u16, Self::Error> {
+        self.read_double_register(ACCEL_ADDR, register)
     }
 
     fn read_accel_3_double_registers(
@@ -140,6 +145,15 @@ where
             .write_read(address, &[register], &mut data)
             .map_err(Error::Comm)
             .and(Ok(data[0]))
+    }
+
+    fn read_double_register(&mut self, address: u8, register: u8) -> Result<u16, Error<E, ()>> {
+        let mut data = [0; 2];
+        self.i2c
+            .write_read(address, &[register | 0x80], &mut data)
+            .map_err(Error::Comm)?;
+
+        Ok(u16::from(data[0]) | (u16::from(data[1]) << 8))
     }
 
     fn read_3_double_registers(
@@ -181,6 +195,13 @@ where
         result
     }
 
+    fn read_accel_double_register(&mut self, register: u8) -> Result<u16, Self::Error> {
+        self.cs_xl.set_low().map_err(Error::Pin)?;
+        let result = self.read_double_register(register);
+        self.cs_xl.set_high().map_err(Error::Pin)?;
+        result
+    }
+
     fn read_accel_3_double_registers(
         &mut self,
         register: u8,
@@ -212,6 +233,12 @@ where
         let mut data = [BitFlags::SPI_RW | register, 0];
         let value = self.spi.transfer(&mut data).map_err(Error::Comm)?;
         Ok(value[1])
+    }
+
+    fn read_double_register(&mut self, register: u8) -> Result<u16, Error<CommE, PinE>> {
+        let mut data = [BitFlags::SPI_RW | BitFlags::SPI_MS | register, 0, 0];
+        let value = self.spi.transfer(&mut data).map_err(Error::Comm)?;
+        Ok(u16::from(value[1]) | (u16::from(value[2]) << 8))
     }
 
     fn read_3_double_registers(
