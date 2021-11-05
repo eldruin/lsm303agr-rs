@@ -40,4 +40,7 @@ impl BitFlags {
     pub const XYZOR: u8 = 1 << 7;
 
     pub const TDA: u8 = 1 << 2;
+
+    pub const TEMP_EN0: u8 = 1 << 6;
+    pub const TEMP_EN1: u8 = 1 << 7;
 }
