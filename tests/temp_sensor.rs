@@ -14,7 +14,19 @@ fn can_read_temp_has_new_data() {
         vec![BF::TDA],
     )]);
 
-    assert!(sensor.temp_has_new_data().unwrap());
+    assert!(sensor.temp_status().unwrap().new_data);
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_read_temp_has_data_overrun() {
+    let mut sensor = new_i2c(&[I2cTrans::write_read(
+        ACCEL_ADDR,
+        vec![Register::STATUS_REG_AUX_A],
+        vec![BF::TOR],
+    )]);
+
+    assert!(sensor.temp_status().unwrap().overrun);
     destroy_i2c(sensor);
 }
 
@@ -26,7 +38,7 @@ fn can_read_temp_has_no_new_data() {
         vec![0x00],
     )]);
 
-    assert!(!sensor.temp_has_new_data().unwrap());
+    assert!(!sensor.temp_status().unwrap().new_data);
     destroy_i2c(sensor);
 }
 

@@ -20,7 +20,7 @@ This driver allows you to:
     - Set accelerometer mode. See: `set_accel_mode()`.
     - Set accelerometer scale. See: `set_accel_scale()`.
     - Get accelerometer ID. See: `accelerometer_id()`.
-    - Get temperature sensor status. See: `temp_has_new_data()`.
+    - Get temperature sensor status. See: `temp_status()`.
     - Get temperature sensor data. See: `temp_data()`.
     - Get temperature sensor data in celsius. See: `temp_celsius()`.
 - Magnetometer:

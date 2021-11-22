@@ -3,7 +3,7 @@ use crate::{
     mode,
     register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
     AccelMode, AccelScale, BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData,
-    Register, Status, UnscaledMeasurement,
+    Register, Status, TempStatus, UnscaledMeasurement,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -193,9 +193,10 @@ where
     }
 
     /// Temperature sensor status
-    pub fn temp_has_new_data(&mut self) -> Result<bool, Error<CommE, PinE>> {
-        let status = self.iface.read_accel_register(Register::STATUS_REG_AUX_A)?;
-        Ok((status & BF::TDA) != 0)
+    pub fn temp_status(&mut self) -> Result<TempStatus, Error<CommE, PinE>> {
+        self.iface
+            .read_accel_register(Register::STATUS_REG_AUX_A)
+            .map(convert_temp_status)
     }
 }
 
@@ -209,5 +210,12 @@ fn convert_status(st: u8) -> Status {
         z_new_data: (st & BF::ZDR) != 0,
         y_new_data: (st & BF::YDR) != 0,
         x_new_data: (st & BF::XDR) != 0,
+    }
+}
+
+fn convert_temp_status(st: u8) -> TempStatus {
+    TempStatus {
+        overrun: (st & BF::TOR) != 0,
+        new_data: (st & BF::TDA) != 0,
     }
 }
