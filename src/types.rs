@@ -137,7 +137,7 @@ pub struct Status {
 
 /// Temperature sensor status
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct TempStatus {
+pub struct TemperatureStatus {
     /// Data overrun
     pub overrun: bool,
     /// New data ready

@@ -3,7 +3,7 @@ use crate::{
     mode,
     register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
     AccelMode, AccelScale, BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData,
-    Register, Status, TempStatus, UnscaledMeasurement,
+    Register, Status, TemperatureStatus, UnscaledMeasurement,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -177,7 +177,7 @@ where
     }
 
     /// Read temperature sensor data
-    pub fn temp_data(&mut self) -> Result<i16, Error<CommE, PinE>> {
+    pub fn temperature_data(&mut self) -> Result<i16, Error<CommE, PinE>> {
         let data = self
             .iface
             .read_accel_double_register(Register::OUT_TEMP_L_A)?;
@@ -185,18 +185,18 @@ where
     }
 
     /// Read temperature sensor data as celsius
-    pub fn temp_celsius(&mut self) -> Result<f32, Error<CommE, PinE>> {
-        let data = self.temp_data()?;
+    pub fn temperature_celsius(&mut self) -> Result<f32, Error<CommE, PinE>> {
+        let data = self.temperature_data()?;
         let temp_offset = (data as f32) / 256.0;
         let default_temp = 25.0;
         Ok(temp_offset + default_temp)
     }
 
     /// Temperature sensor status
-    pub fn temp_status(&mut self) -> Result<TempStatus, Error<CommE, PinE>> {
+    pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
         self.iface
             .read_accel_register(Register::STATUS_REG_AUX_A)
-            .map(convert_temp_status)
+            .map(convert_temperature_status)
     }
 }
 
@@ -213,8 +213,8 @@ fn convert_status(st: u8) -> Status {
     }
 }
 
-fn convert_temp_status(st: u8) -> TempStatus {
-    TempStatus {
+fn convert_temperature_status(st: u8) -> TemperatureStatus {
+    TemperatureStatus {
         overrun: (st & BF::TOR) != 0,
         new_data: (st & BF::TDA) != 0,
     }
