@@ -134,3 +134,12 @@ pub struct Status {
     /// Z-axis data new data ready
     pub z_new_data: bool,
 }
+
+/// Temperature sensor status
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct TemperatureStatus {
+    /// Data overrun
+    pub overrun: bool,
+    /// New data ready
+    pub new_data: bool,
+}

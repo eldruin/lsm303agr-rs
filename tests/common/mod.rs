@@ -19,7 +19,10 @@ pub const DEFAULT_CFG_REG_A_M: u8 = 0x3;
 pub struct Register;
 #[allow(unused)]
 impl Register {
+    pub const STATUS_REG_AUX_A: u8 = 0x07;
+    pub const OUT_TEMP_L_A: u8 = 0x0C;
     pub const WHO_AM_I_A: u8 = 0x0F;
+    pub const TEMP_CFG_REG_A: u8 = 0x1F;
     pub const CTRL_REG1_A: u8 = 0x20;
     pub const CTRL_REG4_A: u8 = 0x23;
     pub const STATUS_REG_A: u8 = 0x27;
@@ -55,6 +58,12 @@ impl BitFlags {
     pub const YOR: u8 = 1 << 5;
     pub const ZOR: u8 = 1 << 6;
     pub const XYZOR: u8 = 1 << 7;
+
+    pub const TDA: u8 = 1 << 2;
+    pub const TOR: u8 = 1 << 6;
+
+    pub const TEMP_EN0: u8 = 1 << 6;
+    pub const TEMP_EN1: u8 = 1 << 7;
 }
 
 #[allow(unused)]

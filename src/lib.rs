@@ -15,6 +15,9 @@
 //!     - Set accelerometer mode. See: [`set_accel_mode()`](Lsm303agr::set_accel_mode).
 //!     - Set accelerometer scale. See: [`set_accel_scale()`](Lsm303agr::set_accel_scale).
 //!     - Get accelerometer ID. See: [`accelerometer_id()`](Lsm303agr::accelerometer_id).
+//!     - Get temperature sensor status. See: [`temperature_status()`](Lsm303agr::temperature_status).
+//!     - Get temperature sensor data. See: [`temperature_data()`](Lsm303agr::temperature_data).
+//!     - Get temperature sensor data in celsius. See: [`temperature_celsius()`](Lsm303agr::temperature_celsius).
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`](Lsm303agr::mag_status).
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`](Lsm303agr::into_mag_continuous).
@@ -115,7 +118,7 @@ mod magnetometer;
 mod types;
 pub use crate::types::{
     mode, AccelMode, AccelOutputDataRate, AccelScale, Error, MagOutputDataRate, Measurement,
-    ModeChangeError, Status, UnscaledMeasurement,
+    ModeChangeError, Status, TemperatureStatus, UnscaledMeasurement,
 };
 mod register_address;
 use crate::register_address::{BitFlags, Register};
@@ -129,6 +132,7 @@ pub struct Lsm303agr<DI, MODE> {
     ctrl_reg4_a: Config,
     cfg_reg_a_m: Config,
     cfg_reg_c_m: Config,
+    temp_cfg_reg_a: Config,
     accel_odr: Option<AccelOutputDataRate>,
     _mag_mode: PhantomData<MODE>,
 }

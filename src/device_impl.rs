@@ -3,7 +3,7 @@ use crate::{
     mode,
     register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
     AccelMode, AccelScale, BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData,
-    Register, Status, UnscaledMeasurement,
+    Register, Status, TemperatureStatus, UnscaledMeasurement,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -15,6 +15,7 @@ impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
             ctrl_reg4_a: Config { bits: 0 },
             cfg_reg_a_m: Config { bits: 0x3 },
             cfg_reg_c_m: Config { bits: 0 },
+            temp_cfg_reg_a: Config { bits: 0 },
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -41,6 +42,7 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneSho
             ctrl_reg4_a: Config { bits: 0 },
             cfg_reg_a_m: Config { bits: 0x3 },
             cfg_reg_c_m: Config { bits: 0 },
+            temp_cfg_reg_a: Config { bits: 0 },
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -60,6 +62,13 @@ where
 {
     /// Initialize registers
     pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
+        let temp_cfg_reg = self
+            .temp_cfg_reg_a
+            .with_high(BF::TEMP_EN0)
+            .with_high(BF::TEMP_EN1);
+        self.iface
+            .write_accel_register(Register::TEMP_CFG_REG_A, temp_cfg_reg.bits)?;
+        self.temp_cfg_reg_a = temp_cfg_reg;
         let reg4 = self.ctrl_reg4_a.with_high(BF::ACCEL_BDU);
         self.iface
             .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
@@ -166,6 +175,29 @@ where
     pub fn magnetometer_is_detected(&mut self) -> Result<bool, Error<CommE, PinE>> {
         Ok(self.magnetometer_id()? == WHO_AM_I_M_VAL)
     }
+
+    /// Read temperature sensor data
+    pub fn temperature_data(&mut self) -> Result<i16, Error<CommE, PinE>> {
+        let data = self
+            .iface
+            .read_accel_double_register(Register::OUT_TEMP_L_A)?;
+        Ok(data as i16)
+    }
+
+    /// Read temperature sensor data as celsius
+    pub fn temperature_celsius(&mut self) -> Result<f32, Error<CommE, PinE>> {
+        let data = self.temperature_data()?;
+        let temp_offset = (data as f32) / 256.0;
+        let default_temp = 25.0;
+        Ok(temp_offset + default_temp)
+    }
+
+    /// Temperature sensor status
+    pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
+        self.iface
+            .read_accel_register(Register::STATUS_REG_AUX_A)
+            .map(convert_temperature_status)
+    }
 }
 
 fn convert_status(st: u8) -> Status {
@@ -178,5 +210,12 @@ fn convert_status(st: u8) -> Status {
         z_new_data: (st & BF::ZDR) != 0,
         y_new_data: (st & BF::YDR) != 0,
         x_new_data: (st & BF::XDR) != 0,
+    }
+}
+
+fn convert_temperature_status(st: u8) -> TemperatureStatus {
+    TemperatureStatus {
+        overrun: (st & BF::TOR) != 0,
+        new_data: (st & BF::TDA) != 0,
     }
 }
