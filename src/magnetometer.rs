@@ -54,6 +54,20 @@ where
             z: data.2 as i16,
         })
     }
+
+    /// Enable or disable the magnetometer's built in offset cancellation
+    pub fn mag_offset_cancellation(&mut self, enable: bool) -> Result<(), Error<CommE, PinE>> {
+        let cfg = self.cfg_reg_b_m.bits & 0b11111101;
+
+        let mask = if enable { 1 << 1 } else { 0 };
+
+        self.iface
+            .write_mag_register(Register::CFG_REG_B_M, cfg | mask)?;
+
+        self.cfg_reg_b_m = (cfg | mask).into();
+
+        Ok(())
+    }
 }
 
 impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
@@ -91,6 +105,20 @@ where
             }
             Err(nb::Error::WouldBlock)
         }
+    }
+
+    /// Enable or disable the magnetometer's built in offset cancellation
+    pub fn mag_offset_cancellation(&mut self, enable: bool) -> Result<(), Error<CommE, PinE>> {
+        let cfg = self.cfg_reg_b_m.bits & 0b11101101;
+
+        let mask = if enable { 1 << 4 | 1 << 1 } else { 0 };
+
+        self.iface
+            .write_mag_register(Register::CFG_REG_B_M, cfg | mask)?;
+
+        self.cfg_reg_b_m = (cfg | mask).into();
+
+        Ok(())
     }
 }
 

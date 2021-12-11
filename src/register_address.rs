@@ -10,6 +10,7 @@ impl Register {
     pub const OUT_X_L_A: u8 = 0x28;
     pub const WHO_AM_I_M: u8 = 0x4F;
     pub const CFG_REG_A_M: u8 = 0x60;
+    pub const CFG_REG_B_M: u8 = 0x61;
     pub const CFG_REG_C_M: u8 = 0x62;
     pub const STATUS_REG_M: u8 = 0x67;
     pub const OUTX_L_REG_M: u8 = 0x68;
