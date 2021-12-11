@@ -56,6 +56,11 @@ where
     }
 
     /// Enable or disable the magnetometer's built in offset cancellation
+    ///
+    /// Offset cancellation is **automatically** managed by the device in **continuous** mode.
+    ///
+    /// Offset cancellation has to be **managed by the user** in **single measurement** (OneShot) mode averaging
+    /// two consecutive measurements H<sub>n</sub> and H<sub>n-1</sub>.
     pub fn mag_offset_cancellation(&mut self, enable: bool) -> Result<(), Error<CommE, PinE>> {
         let cfg = self.cfg_reg_b_m.bits & 0b11111101;
 
@@ -108,6 +113,11 @@ where
     }
 
     /// Enable or disable the magnetometer's built in offset cancellation
+    ///
+    /// Offset cancellation is **automatically** managed by the device in **continuous** mode.
+    ///
+    /// Offset cancellation has to be **managed by the user** in **single measurement** (OneShot) mode averaging
+    /// two consecutive measurements H<sub>n</sub> and H<sub>n-1</sub>.
     pub fn mag_offset_cancellation(&mut self, enable: bool) -> Result<(), Error<CommE, PinE>> {
         let cfg = self.cfg_reg_b_m.bits & 0b11101101;
 
