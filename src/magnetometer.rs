@@ -60,6 +60,8 @@ where
     /// Enable the magnetometer's built in offset cancellation.
     ///
     /// Offset cancellation is **automatically** managed by the device in **continuous** mode.
+    ///
+    /// To later disable offset cancellation, use the [`disable_mag_offset_cancellation`](Lsm303agr::disable_mag_offset_cancellation) function
     pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
         let reg_b = self.cfg_reg_b_m.with_high(BitFlags::MAG_OFF_CANC);
 
@@ -119,10 +121,12 @@ where
         }
     }
 
-    /// Enable the magnetometer's built in offset cancellation
+    /// Enable the magnetometer's built in offset cancellation.
     ///
     /// Offset cancellation has to be **managed by the user** in **single measurement** (OneShot) mode averaging
     /// two consecutive measurements H<sub>n</sub> and H<sub>n-1</sub>.
+    ///
+    /// To later disable offset cancellation, use the [`disable_mag_offset_cancellation`](Lsm303agr::disable_mag_offset_cancellation) function
     pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
         let reg_b = self
             .cfg_reg_b_m
@@ -136,7 +140,7 @@ where
         Ok(())
     }
 
-    /// Disable the magnetometer's built in offset cancellation
+    /// Disable the magnetometer's built in offset cancellation.
     pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
         let reg_b = self
             .cfg_reg_b_m

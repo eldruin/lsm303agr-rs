@@ -25,6 +25,7 @@
 //!     - Read magnetometer data unscaled. See: [`mag_data()`](Lsm303agr::mag_data_unscaled).
 //!     - Set magnetometer output data rate. See: [`set_mag_odr()`](Lsm303agr::set_mag_odr).
 //!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
+//!     - Enable/disable magnetometer built in offset cancellation. See: [`enable_mag_offset_cancellation()`](Lsm303agr::enable_mag_offset_cancellation).
 //!
 //! <!-- TODO
 //! [Introductory blog post](TODO)
