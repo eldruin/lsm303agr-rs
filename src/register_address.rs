@@ -31,6 +31,9 @@ impl BitFlags {
 
     pub const MAG_BDU: u8 = 1 << 4;
 
+    pub const MAG_OFF_CANC: u8 = 1 << 1;
+    pub const MAG_OFF_CANC_ONE_SHOT: u8 = 1 << 4;
+
     pub const XDR: u8 = 1;
     pub const YDR: u8 = 1 << 1;
     pub const ZDR: u8 = 1 << 2;
