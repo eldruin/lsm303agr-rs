@@ -21,6 +21,31 @@ where
         self.cfg_reg_a_m = (cfg | mask).into();
         Ok(())
     }
+
+    /// Internal function used by `enable_mag_offset_cancellation` and
+    /// `disable_mag_offset_cancellation` to reduce code duplication
+    fn offset_cancellation(
+        &mut self,
+        enable: bool,
+        one_shot: bool,
+    ) -> Result<(), Error<CommE, PinE>> {
+        let cfg = self.cfg_reg_b_m.bits & 0b11101101;
+
+        // In the LSM303AGR offset cancellation is enabled by setting bit OFF_CANC = 1 (and bit
+        // OFF_CANC_ONE_SHOT = 1 in single measurement mode) in CFG_REG_B_M (61h)
+        let off_canc = if enable { 1 << 1 } else { 0 };
+        let off_canc_one_shot = if enable && one_shot { 1 << 4 } else { 0 };
+
+        // Combine the two masks
+        let mask = off_canc | off_canc_one_shot;
+
+        self.iface
+            .write_mag_register(Register::CFG_REG_B_M, cfg | mask)?;
+
+        self.cfg_reg_b_m = (cfg | mask).into();
+
+        Ok(())
+    }
 }
 
 impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagContinuous>
@@ -55,23 +80,16 @@ where
         })
     }
 
-    /// Enable or disable the magnetometer's built in offset cancellation
+    /// Enable the magnetometer's built in offset cancellation.
     ///
     /// Offset cancellation is **automatically** managed by the device in **continuous** mode.
-    ///
-    /// Offset cancellation has to be **managed by the user** in **single measurement** (OneShot) mode averaging
-    /// two consecutive measurements H<sub>n</sub> and H<sub>n-1</sub>.
-    pub fn mag_offset_cancellation(&mut self, enable: bool) -> Result<(), Error<CommE, PinE>> {
-        let cfg = self.cfg_reg_b_m.bits & 0b11111101;
+    pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+        self.offset_cancellation(true, false)
+    }
 
-        let mask = if enable { 1 << 1 } else { 0 };
-
-        self.iface
-            .write_mag_register(Register::CFG_REG_B_M, cfg | mask)?;
-
-        self.cfg_reg_b_m = (cfg | mask).into();
-
-        Ok(())
+    /// Disable the magnetometer's built in offset cancellation.
+    pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+        self.offset_cancellation(false, false)
     }
 }
 
@@ -112,23 +130,17 @@ where
         }
     }
 
-    /// Enable or disable the magnetometer's built in offset cancellation
-    ///
-    /// Offset cancellation is **automatically** managed by the device in **continuous** mode.
+    /// Enable the magnetometer's built in offset cancellation
     ///
     /// Offset cancellation has to be **managed by the user** in **single measurement** (OneShot) mode averaging
     /// two consecutive measurements H<sub>n</sub> and H<sub>n-1</sub>.
-    pub fn mag_offset_cancellation(&mut self, enable: bool) -> Result<(), Error<CommE, PinE>> {
-        let cfg = self.cfg_reg_b_m.bits & 0b11101101;
+    pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+        self.offset_cancellation(true, true)
+    }
 
-        let mask = if enable { 1 << 4 | 1 << 1 } else { 0 };
-
-        self.iface
-            .write_mag_register(Register::CFG_REG_B_M, cfg | mask)?;
-
-        self.cfg_reg_b_m = (cfg | mask).into();
-
-        Ok(())
+    /// Disable the magnetometer's built in offset cancellation
+    pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+        self.offset_cancellation(false, true)
     }
 }
 
