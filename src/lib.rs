@@ -70,12 +70,7 @@
 //!
 //! ### Connect through I2C, initialize and take some measurements
 //!
-#![cfg_attr(
-    not(target_os = "linux"),
-    doc = "**note**: the following example will only compile on linux"
-)]
-#![cfg_attr(not(target_os = "linux"), doc = "```ignore")]
-#![cfg_attr(target_os = "linux", doc = "```no_run")]
+//! ```no_run
 //! use linux_embedded_hal::I2cdev;
 //! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
 //!
@@ -95,12 +90,7 @@
 //!
 //! ### Connect through SPI, initialize and take some measurements
 //!
-#![cfg_attr(
-    not(target_os = "linux"),
-    doc = "**note**: the following example will only compile on linux"
-)]
-#![cfg_attr(not(target_os = "linux"), doc = "```ignore")]
-#![cfg_attr(target_os = "linux", doc = "```no_run")]
+//! ```no_run
 //! use linux_embedded_hal::{Spidev, Pin};
 //! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
 //!
