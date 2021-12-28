@@ -30,6 +30,7 @@ This driver allows you to:
     - Read magnetometer data unscaled. See: `mag_data_unscaled()`.
     - Set magnetometer output data rate. See: `set_mag_odr()`.
     - Get magnetometer ID. See: `magnetometer_id()`.
+    - Enable/disable magnetometer built in offset cancellation. See: `enable_mag_offset_cancellation()`.
 
 <!-- TODO
 [Introductory blog post]()

@@ -25,6 +25,7 @@
 //!     - Read magnetometer data unscaled. See: [`mag_data()`](Lsm303agr::mag_data_unscaled).
 //!     - Set magnetometer output data rate. See: [`set_mag_odr()`](Lsm303agr::set_mag_odr).
 //!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
+//!     - Enable/disable magnetometer built in offset cancellation. See: [`enable_mag_offset_cancellation()`](Lsm303agr::enable_mag_offset_cancellation).
 //!
 //! <!-- TODO
 //! [Introductory blog post](TODO)
@@ -75,8 +76,10 @@
 //!
 //! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let mut sensor = Lsm303agr::new_with_i2c(dev);
+//!
 //! sensor.init().unwrap();
 //! sensor.set_accel_odr(AccelOutputDataRate::Hz10).unwrap();
+//!
 //! loop {
 //!     if sensor.accel_status().unwrap().xyz_new_data {
 //!         let data = sensor.accel_data().unwrap();
@@ -95,8 +98,10 @@
 //! let accel_cs = Pin::new(17);
 //! let mag_cs = Pin::new(27);
 //! let mut sensor = Lsm303agr::new_with_spi(dev, accel_cs, mag_cs);
+//!
 //! sensor.init().unwrap();
 //! sensor.set_accel_odr(AccelOutputDataRate::Hz10).unwrap();
+//!
 //! loop {
 //!     if sensor.accel_status().unwrap().xyz_new_data {
 //!         let data = sensor.accel_data().unwrap();
@@ -131,6 +136,7 @@ pub struct Lsm303agr<DI, MODE> {
     ctrl_reg1_a: Config,
     ctrl_reg4_a: Config,
     cfg_reg_a_m: Config,
+    cfg_reg_b_m: Config,
     cfg_reg_c_m: Config,
     temp_cfg_reg_a: Config,
     accel_odr: Option<AccelOutputDataRate>,

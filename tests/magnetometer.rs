@@ -165,3 +165,77 @@ fn can_take_continuous_measurement_spi() {
     );
     destroy_spi(sensor);
 }
+
+#[test]
+fn can_enable_mag_offset_cancellation_continuous() {
+    let sensor = new_i2c(&[
+        // Mag continuous mode
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 0]),
+        // Enable offset cancellation
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_B_M, BF::MAG_OFF_CANC]),
+    ]);
+
+    let mut sensor = sensor
+        .into_mag_continuous()
+        .expect("failed to set magnetometer into continuous mode");
+
+    sensor
+        .enable_mag_offset_cancellation()
+        .expect("failed to enable offset cancellation");
+
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_disable_mag_offset_cancellation_continuous() {
+    let sensor = new_i2c(&[
+        // Mag continuous mode
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 0]),
+        // Disable offset cancellation
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_B_M, 0]),
+    ]);
+
+    let mut sensor = sensor
+        .into_mag_continuous()
+        .expect("failed to set magnetometer into continuous mode");
+
+    sensor
+        .disable_mag_offset_cancellation()
+        .expect("failed to disable offset cancellation");
+
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_enable_mag_offset_cancellation_one_shot() {
+    let mut sensor = new_i2c(&[
+        // Enable offset cancellation
+        I2cTrans::write(
+            MAG_ADDR,
+            vec![
+                Register::CFG_REG_B_M,
+                BF::MAG_OFF_CANC | BF::MAG_OFF_CANC_ONE_SHOT,
+            ],
+        ),
+    ]);
+
+    sensor
+        .enable_mag_offset_cancellation()
+        .expect("failed to disable offset cancellation");
+
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_disable_mag_offset_cancellation_one_shot() {
+    let mut sensor = new_i2c(&[
+        // Disable offset cancellation
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_B_M, 0]),
+    ]);
+
+    sensor
+        .disable_mag_offset_cancellation()
+        .expect("failed to disable offset cancellation");
+
+    destroy_i2c(sensor);
+}
