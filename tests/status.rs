@@ -1,25 +1,22 @@
-use lsm303agr::Status;
 mod common;
 use crate::common::{destroy_i2c, new_i2c, BitFlags as BF, Register, ACCEL_ADDR, MAG_ADDR};
 use embedded_hal_mock::i2c::Transaction as I2cTrans;
 
 macro_rules! status_eq {
     ($st:expr, $xyz_overrun:expr, $x_overrun:expr, $y_overrun:expr, $z_overrun:expr,
-    $xyz_new_data:expr, $x_new_data:expr, $y_new_data:expr, $z_new_data:expr) => {
-        assert_eq!(
-            Status {
-                xyz_overrun: $xyz_overrun,
-                x_overrun: $x_overrun,
-                y_overrun: $y_overrun,
-                z_overrun: $z_overrun,
-                xyz_new_data: $xyz_new_data,
-                x_new_data: $x_new_data,
-                y_new_data: $y_new_data,
-                z_new_data: $z_new_data
-            },
-            $st
-        );
-    };
+    $xyz_new_data:expr, $x_new_data:expr, $y_new_data:expr, $z_new_data:expr) => {{
+        let status = $st;
+
+        assert_eq!(status.x_overrun(), $x_overrun);
+        assert_eq!(status.y_overrun(), $y_overrun);
+        assert_eq!(status.z_overrun(), $z_overrun);
+        assert_eq!(status.xyz_overrun(), $xyz_overrun);
+
+        assert_eq!(status.x_new_data(), $x_new_data);
+        assert_eq!(status.y_new_data(), $y_new_data);
+        assert_eq!(status.z_new_data(), $z_new_data);
+        assert_eq!(status.xyz_new_data(), $xyz_new_data);
+    }};
 }
 
 macro_rules! get_st_test {

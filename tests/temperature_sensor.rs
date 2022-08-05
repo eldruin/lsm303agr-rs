@@ -14,7 +14,7 @@ fn can_read_temperature_has_new_data() {
         vec![BF::TDA],
     )]);
 
-    assert!(sensor.temperature_status().unwrap().new_data);
+    assert!(sensor.temperature_status().unwrap().new_data());
     destroy_i2c(sensor);
 }
 
@@ -26,7 +26,7 @@ fn can_read_temperature_has_data_overrun() {
         vec![BF::TOR],
     )]);
 
-    assert!(sensor.temperature_status().unwrap().overrun);
+    assert!(sensor.temperature_status().unwrap().overrun());
     destroy_i2c(sensor);
 }
 
@@ -38,7 +38,7 @@ fn can_read_temperature_has_no_new_data() {
         vec![0x00],
     )]);
 
-    assert!(!sensor.temperature_status().unwrap().new_data);
+    assert!(!sensor.temperature_status().unwrap().new_data());
     destroy_i2c(sensor);
 }
 

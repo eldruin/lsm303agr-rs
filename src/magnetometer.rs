@@ -101,7 +101,7 @@ where
     /// Unscaled magnetometer data
     pub fn mag_data_unscaled(&mut self) -> nb::Result<UnscaledMeasurement, Error<CommE, PinE>> {
         let status = self.mag_status()?;
-        if status.xyz_new_data {
+        if status.xyz_new_data() {
             let data = self
                 .iface
                 .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
