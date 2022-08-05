@@ -127,26 +127,88 @@ impl Acceleration {
     }
 }
 
-/// Measurement
+/// A magnetic field measurement.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct Measurement {
-    /// X-axis data.
-    pub x: i32,
-    /// Y-axis data.
-    pub y: i32,
-    /// Z-axis data.
-    pub z: i32,
+pub struct MagneticField {
+    pub(crate) x: u16,
+    pub(crate) y: u16,
+    pub(crate) z: u16,
 }
 
-/// Unscaled measurement
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct UnscaledMeasurement {
-    /// X-axis data.
-    pub x: i16,
-    /// Y-axis data.
-    pub y: i16,
-    /// Z-axis data.
-    pub z: i16,
+impl MagneticField {
+    const SCALING_FACTOR: i32 = 150;
+
+    /// Raw magnetic field in X-direction.
+    #[inline]
+    pub const fn x_raw(&self) -> u16 {
+        self.x
+    }
+
+    /// Raw magnetic field in Y-direction.
+    #[inline]
+    pub const fn y_raw(&self) -> u16 {
+        self.y
+    }
+
+    /// Raw magnetic field in Z-direction.
+    #[inline]
+    pub const fn z_raw(&self) -> u16 {
+        self.z
+    }
+
+    /// Raw magnetic field in X-, Y- and Z-directions.
+    #[inline]
+    pub const fn xyz_raw(&self) -> (u16, u16, u16) {
+        (self.x, self.y, self.z)
+    }
+
+    /// Unscaled magnetic field in X-direction.
+    #[inline]
+    pub const fn x_unscaled(&self) -> i16 {
+        self.x as i16
+    }
+
+    /// Unscaled magnetic field in Y-direction.
+    #[inline]
+    pub const fn y_unscaled(&self) -> i16 {
+        self.y as i16
+    }
+
+    /// Unscaled magnetic field in Z-direction.
+    #[inline]
+    pub const fn z_unscaled(&self) -> i16 {
+        self.z as i16
+    }
+
+    /// Unscaled magnetic field in X-, Y- and Z-directions.
+    #[inline]
+    pub const fn xyz_unscaled(&self) -> (i16, i16, i16) {
+        (self.x as i16, self.y as i16, self.z as i16)
+    }
+
+    /// Magnetic field in X-direction in nT (nano-Tesla).
+    #[inline]
+    pub const fn x_nt(&self) -> i32 {
+        (self.x_unscaled() as i32) * Self::SCALING_FACTOR
+    }
+
+    /// Magnetic field in Y-direction in nT (nano-Tesla).
+    #[inline]
+    pub const fn y_nt(&self) -> i32 {
+        (self.y_unscaled() as i32) * Self::SCALING_FACTOR
+    }
+
+    /// Magnetic field in Z-direction in nT (nano-Tesla).
+    #[inline]
+    pub const fn z_nt(&self) -> i32 {
+        (self.z_unscaled() as i32) * Self::SCALING_FACTOR
+    }
+
+    /// Magnetic field in X-, Y- and Z-directions in nT (nano-Tesla).
+    #[inline]
+    pub const fn xyz_nt(&self) -> (i32, i32, i32) {
+        (self.x_nt(), self.y_nt(), self.z_nt())
+    }
 }
 
 /// Accelerometer output data rate

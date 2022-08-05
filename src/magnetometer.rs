@@ -2,7 +2,7 @@ use crate::{
     interface::{ReadData, WriteData},
     mode,
     register_address::BitFlags,
-    Error, Lsm303agr, MagOutputDataRate, Measurement, Register, UnscaledMeasurement,
+    Error, Lsm303agr, MagOutputDataRate, MagneticField, Register,
 };
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
@@ -29,32 +29,13 @@ impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagContinuous>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Magnetometer data
-    ///
-    /// Returned in nT (nanotesla)
-    ///
-    /// If you need the raw unscaled measurement see [`Lsm303agr::mag_data_unscaled`].
-    pub fn mag_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
-        let unscaled = self.mag_data_unscaled()?;
-
-        Ok(Measurement {
-            x: scale_measurement(unscaled.x),
-            y: scale_measurement(unscaled.y),
-            z: scale_measurement(unscaled.z),
-        })
-    }
-
-    /// Unscaled magnetometer data
-    pub fn mag_data_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<CommE, PinE>> {
-        let data = self
+    /// Get the measured magnetic field.
+    pub fn magnetic_field(&mut self) -> Result<MagneticField, Error<CommE, PinE>> {
+        let (x, y, z) = self
             .iface
             .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
 
-        Ok(UnscaledMeasurement {
-            x: data.0 as i16,
-            y: data.1 as i16,
-            z: data.2 as i16,
-        })
+        Ok(MagneticField { x, y, z })
     }
 
     /// Enable the magnetometer's built in offset cancellation.
@@ -88,28 +69,15 @@ impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Magnetometer data in nT (nanoteslas)
-    pub fn mag_data(&mut self) -> nb::Result<Measurement, Error<CommE, PinE>> {
-        let unscaled = self.mag_data_unscaled()?;
-        Ok(Measurement {
-            x: scale_measurement(unscaled.x),
-            y: scale_measurement(unscaled.y),
-            z: scale_measurement(unscaled.z),
-        })
-    }
-
-    /// Unscaled magnetometer data
-    pub fn mag_data_unscaled(&mut self) -> nb::Result<UnscaledMeasurement, Error<CommE, PinE>> {
+    /// Get the measured magnetic field.
+    pub fn magnetic_field(&mut self) -> nb::Result<MagneticField, Error<CommE, PinE>> {
         let status = self.mag_status()?;
         if status.xyz_new_data() {
-            let data = self
+            let (x, y, z) = self
                 .iface
                 .read_mag_3_double_registers(Register::OUTX_L_REG_M)?;
-            Ok(UnscaledMeasurement {
-                x: data.0 as i16,
-                y: data.1 as i16,
-                z: data.2 as i16,
-            })
+
+            Ok(MagneticField { x, y, z })
         } else {
             let cfg = self.iface.read_mag_register(Register::CFG_REG_A_M)?;
             if (cfg & 0x3) != 0x1 {
@@ -153,10 +121,4 @@ where
 
         Ok(())
     }
-}
-
-const SCALING_FACTOR: i32 = 150;
-
-fn scale_measurement(unscaled: i16) -> i32 {
-    unscaled as i32 * SCALING_FACTOR
 }

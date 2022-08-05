@@ -8,7 +8,7 @@ use embedded_hal_mock::{
     pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
     spi::Transaction as SpiTrans,
 };
-use lsm303agr::{MagOutputDataRate as ODR, Measurement, UnscaledMeasurement};
+use lsm303agr::MagOutputDataRate as ODR;
 
 macro_rules! set_mag_odr {
     ($name:ident, $hz:ident, $value:expr) => {
@@ -43,15 +43,10 @@ fn can_take_one_shot_measurement() {
             vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
         ),
     ]);
-    let data = nb::block!(sensor.mag_data()).unwrap();
-    assert_eq!(
-        data,
-        Measurement {
-            x: 0x2010 * 150,
-            y: 0x4030 * 150,
-            z: 0x6050 * 150,
-        }
-    );
+    let data = nb::block!(sensor.magnetic_field()).unwrap();
+    assert_eq!(data.x_nt(), 0x2010 * 150);
+    assert_eq!(data.y_nt(), 0x4030 * 150);
+    assert_eq!(data.z_nt(), 0x6050 * 150);
     destroy_i2c(sensor);
 }
 
@@ -70,15 +65,10 @@ fn can_take_one_shot_unscaled_measurement() {
             vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
         ),
     ]);
-    let data = nb::block!(sensor.mag_data_unscaled()).unwrap();
-    assert_eq!(
-        data,
-        UnscaledMeasurement {
-            x: 0x2010,
-            y: 0x4030,
-            z: 0x6050,
-        }
-    );
+    let data = nb::block!(sensor.magnetic_field()).unwrap();
+    assert_eq!(data.x_unscaled(), 0x2010);
+    assert_eq!(data.y_unscaled(), 0x4030);
+    assert_eq!(data.z_unscaled(), 0x6050);
     destroy_i2c(sensor);
 }
 
@@ -93,15 +83,10 @@ fn can_take_continuous_measurement() {
         ),
     ]);
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
-    let data = sensor.mag_data().unwrap();
-    assert_eq!(
-        data,
-        Measurement {
-            x: 0x2010 * 150,
-            y: 0x4030 * 150,
-            z: 0x6050 * 150,
-        }
-    );
+    let data = sensor.magnetic_field().unwrap();
+    assert_eq!(data.x_nt(), 0x2010 * 150);
+    assert_eq!(data.y_nt(), 0x4030 * 150);
+    assert_eq!(data.z_nt(), 0x6050 * 150);
     destroy_i2c(sensor);
 }
 
@@ -116,15 +101,10 @@ fn can_take_continuous_unscaled_measurement() {
         ),
     ]);
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
-    let data = sensor.mag_data_unscaled().unwrap();
-    assert_eq!(
-        data,
-        UnscaledMeasurement {
-            x: 0x2010,
-            y: 0x4030,
-            z: 0x6050,
-        }
-    );
+    let data = sensor.magnetic_field().unwrap();
+    assert_eq!(data.x_unscaled(), 0x2010);
+    assert_eq!(data.y_unscaled(), 0x4030);
+    assert_eq!(data.z_unscaled(), 0x6050);
     destroy_i2c(sensor);
 }
 
@@ -154,15 +134,10 @@ fn can_take_continuous_measurement_spi() {
         ]),
     );
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
-    let data = sensor.mag_data().unwrap();
-    assert_eq!(
-        data,
-        Measurement {
-            x: 0x2010 * 150,
-            y: 0x4030 * 150,
-            z: 0x6050 * 150,
-        }
-    );
+    let data = sensor.magnetic_field().unwrap();
+    assert_eq!(data.x_nt(), 0x2010 * 150);
+    assert_eq!(data.y_nt(), 0x4030 * 150);
+    assert_eq!(data.z_nt(), 0x6050 * 150);
     destroy_spi(sensor);
 }
 
