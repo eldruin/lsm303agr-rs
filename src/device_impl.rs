@@ -2,8 +2,8 @@ use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
     mode,
     register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL},
-    AccelMode, AccelScale, BitFlags as BF, Config, Error, Lsm303agr, Measurement, PhantomData,
-    Register, Status, TemperatureStatus, UnscaledMeasurement,
+    Acceleration, BitFlags as BF, Config, Error, Lsm303agr, PhantomData, Register, Status,
+    TemperatureStatus,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -89,65 +89,18 @@ where
             .map(Status::new)
     }
 
-    /// Accelerometer data
-    ///
-    /// Returned in mg (milli-g) where 1g is 9.8m/s².
-    ///
-    /// If you need the raw unscaled measurement see [`Lsm303agr::accel_data_unscaled`].
-    pub fn accel_data(&mut self) -> Result<Measurement, Error<CommE, PinE>> {
-        let unscaled = self.accel_data_unscaled()?;
-
-        let mode = self.get_accel_mode();
-        let scale = self.get_accel_scale();
-
-        let scaling_factor = match mode {
-            AccelMode::PowerDown => 0,
-            AccelMode::HighResolution => match scale {
-                AccelScale::G2 => 1,
-                AccelScale::G4 => 2,
-                AccelScale::G8 => 4,
-                AccelScale::G16 => 8,
-            },
-            AccelMode::LowPower => match scale {
-                AccelScale::G2 => 16,
-                AccelScale::G4 => 32,
-                AccelScale::G8 => 64,
-                AccelScale::G16 => 128,
-            },
-            AccelMode::Normal => match scale {
-                AccelScale::G2 => 4,
-                AccelScale::G4 => 8,
-                AccelScale::G8 => 16,
-                AccelScale::G16 => 32,
-            },
-        };
-
-        Ok(Measurement {
-            x: (unscaled.x as i32) * scaling_factor,
-            y: (unscaled.y as i32) * scaling_factor,
-            z: (unscaled.z as i32) * scaling_factor,
-        })
-    }
-
-    /// Unscaled accelerometer data
-    pub fn accel_data_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<CommE, PinE>> {
-        let data = self
+    /// Get measured acceleration.
+    pub fn acceleration(&mut self) -> Result<Acceleration, Error<CommE, PinE>> {
+        let (x, y, z) = self
             .iface
             .read_accel_3_double_registers(Register::OUT_X_L_A)?;
 
-        let mode = self.get_accel_mode();
-
-        let resolution_factor = match mode {
-            AccelMode::PowerDown => 1,
-            AccelMode::HighResolution => 1 << 4,
-            AccelMode::LowPower => 1 << 8,
-            AccelMode::Normal => 1 << 6,
-        };
-
-        Ok(UnscaledMeasurement {
-            x: (data.0 as i16) / resolution_factor,
-            y: (data.1 as i16) / resolution_factor,
-            z: (data.2 as i16) / resolution_factor,
+        Ok(Acceleration {
+            x,
+            y,
+            z,
+            mode: self.get_accel_mode(),
+            scale: self.get_accel_scale(),
         })
     }
 

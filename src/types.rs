@@ -22,12 +22,109 @@ pub struct ModeChangeError<CommE, PinE, DEV> {
 
 /// Device operation modes
 pub mod mode {
-    /// Magnetometer one-shot (single) mode
+    /// Marker type for magnetometer in one-shot (single) mode.
     #[derive(Debug)]
-    pub struct MagOneShot;
-    /// Magnetometer continuous mode
+    pub enum MagOneShot {}
+    /// Marker type for magnetometer in continuous mode.
     #[derive(Debug)]
-    pub struct MagContinuous;
+    pub enum MagContinuous {}
+}
+
+/// An acceleration measurement.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Acceleration {
+    pub(crate) x: u16,
+    pub(crate) y: u16,
+    pub(crate) z: u16,
+    pub(crate) mode: AccelMode,
+    pub(crate) scale: AccelScale,
+}
+
+impl Acceleration {
+    /// Raw acceleration in X-direction.
+    #[inline]
+    pub const fn x_raw(&self) -> u16 {
+        self.x
+    }
+
+    /// Raw acceleration in Y-direction.
+    #[inline]
+    pub const fn y_raw(&self) -> u16 {
+        self.y
+    }
+
+    /// Raw acceleration in Z-direction.
+    #[inline]
+    pub const fn z_raw(&self) -> u16 {
+        self.z
+    }
+
+    /// Raw acceleration in X-, Y- and Z-directions.
+    #[inline]
+    pub const fn xyz_raw(&self) -> (u16, u16, u16) {
+        (self.x, self.y, self.z)
+    }
+
+    /// Unscaled acceleration in X-direction.
+    #[inline]
+    pub const fn x_unscaled(&self) -> i16 {
+        (self.x as i16) / self.mode.resolution_factor()
+    }
+
+    /// Unscaled acceleration in Y-direction.
+    #[inline]
+    pub const fn y_unscaled(&self) -> i16 {
+        (self.y as i16) / self.mode.resolution_factor()
+    }
+
+    /// Unscaled acceleration in Z-direction.
+    #[inline]
+    pub const fn z_unscaled(&self) -> i16 {
+        (self.z as i16) / self.mode.resolution_factor()
+    }
+
+    /// Unscaled acceleration in X-, Y- and Z-directions.
+    #[inline]
+    pub const fn xyz_unscaled(&self) -> (i16, i16, i16) {
+        let resolution_factor = self.mode.resolution_factor();
+
+        (
+            (self.x as i16) / resolution_factor,
+            (self.y as i16) / resolution_factor,
+            (self.z as i16) / resolution_factor,
+        )
+    }
+
+    /// Acceleration in X-direction in m*g* (milli-*g*).
+    #[inline]
+    pub const fn x_mg(&self) -> i32 {
+        (self.x_unscaled() as i32) * self.mode.scaling_factor(self.scale)
+    }
+
+    /// Acceleration in Y-direction in m*g* (milli-*g*).
+    #[inline]
+    pub const fn y_mg(&self) -> i32 {
+        (self.y_unscaled() as i32) * self.mode.scaling_factor(self.scale)
+    }
+
+    /// Acceleration in Z-direction in m*g* (milli-*g*).
+    #[inline]
+    pub const fn z_mg(&self) -> i32 {
+        (self.z_unscaled() as i32) * self.mode.scaling_factor(self.scale)
+    }
+
+    /// Acceleration in X-, Y- and Z-directions in m*g* (milli-*g*).
+    #[inline]
+    pub const fn xyz_mg(&self) -> (i32, i32, i32) {
+        let (x_unscaled, y_unscaled, z_unscaled) = self.xyz_unscaled();
+        let scaling_factor = self.mode.scaling_factor(self.scale);
+
+        (
+            (x_unscaled as i32) * scaling_factor,
+            (y_unscaled as i32) * scaling_factor,
+            (z_unscaled as i32) * scaling_factor,
+        )
+    }
 }
 
 /// Measurement
@@ -90,17 +187,37 @@ pub enum AccelMode {
     HighResolution,
 }
 
+impl AccelMode {
+    pub(crate) const fn resolution_factor(&self) -> i16 {
+        match self {
+            Self::PowerDown => 1,
+            Self::HighResolution => 1 << 4,
+            Self::Normal => 1 << 6,
+            Self::LowPower => 1 << 8,
+        }
+    }
+
+    pub(crate) const fn scaling_factor(&self, scale: AccelScale) -> i32 {
+        match self {
+            Self::PowerDown => 0,
+            Self::HighResolution => scale as i32 / 2,
+            Self::Normal => scale as i32 * 2,
+            Self::LowPower => scale as i32 * 8,
+        }
+    }
+}
+
 /// Accelerometer scaling factor
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AccelScale {
     /// Plus or minus 2g
-    G2,
+    G2 = 2,
     /// Plus or minus 4g
-    G4,
+    G4 = 4,
     /// Plus or minus 8g
-    G8,
+    G8 = 8,
     /// Plus or minus 16g
-    G16,
+    G16 = 16,
 }
 
 /// Magnetometer output data rate

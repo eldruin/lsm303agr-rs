@@ -4,7 +4,7 @@ use crate::common::{
     ACCEL_ADDR, DEFAULT_CTRL_REG1_A, HZ50,
 };
 use embedded_hal_mock::{i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans};
-use lsm303agr::{AccelMode, AccelOutputDataRate, AccelScale, Measurement, UnscaledMeasurement};
+use lsm303agr::{AccelMode, AccelOutputDataRate, AccelScale};
 
 fn i2c_mode_txns(mode: &AccelMode) -> Vec<I2cTrans> {
     match mode {
@@ -53,10 +53,9 @@ fn i2c_scale_txns(mode: &AccelMode, scale: &AccelScale) -> Vec<I2cTrans> {
 }
 
 macro_rules! can_get_i2c {
-    ( $name:ident, $mode:ident, $scale:ident, $expected:expr ) => {
+    ( $name:ident, $mode:ident, $scale:ident, $expected_x:expr, $expected_y:expr, $expected_z:expr ) => {
         #[test]
         fn $name() {
-            let expected = $expected;
             let mode = AccelMode::$mode;
             let scale = AccelScale::$scale;
             let mut txns: Vec<I2cTrans> = vec![I2cTrans::write(
@@ -81,9 +80,11 @@ macro_rules! can_get_i2c {
                 sensor.set_accel_scale(scale).unwrap();
             }
 
-            let actual = sensor.accel_data().unwrap();
+            let data = sensor.acceleration().unwrap();
 
-            assert_eq!(actual, expected);
+            assert_eq!(data.x_mg(), $expected_x);
+            assert_eq!(data.y_mg(), $expected_y);
+            assert_eq!(data.z_mg(), $expected_z);
 
             destroy_i2c(sensor);
         }
@@ -94,44 +95,48 @@ macro_rules! can_get_i2c {
 mod can_get_i2c {
     use super::*;
 
-    can_get_i2c!(low_power_2g,        LowPower,       G2,  Measurement { x: 512, y: 1024, z: 1536 });
-    can_get_i2c!(high_resolution_2g,  HighResolution, G2,  Measurement { x: 513, y: 1027, z: 1541 });
-    can_get_i2c!(normal_2g,           Normal,         G2,  Measurement { x: 512, y: 1024, z: 1540 });
-    can_get_i2c!(low_power_4g,        LowPower,       G4,  Measurement { x: 512 * 2, y: 1024 * 2, z: 1536 * 2});
-    can_get_i2c!(high_resolution_4g,  HighResolution, G4,  Measurement { x: 513 * 2, y: 1027 * 2, z: 1541 * 2});
-    can_get_i2c!(normal_4g,           Normal,         G4,  Measurement { x: 512 * 2, y: 1024 * 2, z: 1540 * 2});
-    can_get_i2c!(low_power_8g,        LowPower,       G8,  Measurement { x: 512 * 4, y: 1024 * 4, z: 1536 * 4});
-    can_get_i2c!(high_resolution_8g,  HighResolution, G8,  Measurement { x: 513 * 4, y: 1027 * 4, z: 1541 * 4});
-    can_get_i2c!(normal_8g,           Normal,         G8,  Measurement { x: 512 * 4, y: 1024 * 4, z: 1540 * 4});
-    can_get_i2c!(low_power_16g,       LowPower,       G16, Measurement { x: 512 * 8, y: 1024 * 8, z: 1536 * 8});
-    can_get_i2c!(high_resolution_16g, HighResolution, G16, Measurement { x: 513 * 8, y: 1027 * 8, z: 1541 * 8});
-    can_get_i2c!(normal_16g,          Normal,         G16, Measurement { x: 512 * 8, y: 1024 * 8, z: 1540 * 8});
+    can_get_i2c!(low_power_2g,        LowPower,       G2,  512 * 1, 1024 * 1, 1536 * 1);
+    can_get_i2c!(high_resolution_2g,  HighResolution, G2,  513 * 1, 1027 * 1, 1541 * 1);
+    can_get_i2c!(normal_2g,           Normal,         G2,  512 * 1, 1024 * 1, 1540 * 1);
+    can_get_i2c!(low_power_4g,        LowPower,       G4,  512 * 2, 1024 * 2, 1536 * 2);
+    can_get_i2c!(high_resolution_4g,  HighResolution, G4,  513 * 2, 1027 * 2, 1541 * 2);
+    can_get_i2c!(normal_4g,           Normal,         G4,  512 * 2, 1024 * 2, 1540 * 2);
+    can_get_i2c!(low_power_8g,        LowPower,       G8,  512 * 4, 1024 * 4, 1536 * 4);
+    can_get_i2c!(high_resolution_8g,  HighResolution, G8,  513 * 4, 1027 * 4, 1541 * 4);
+    can_get_i2c!(normal_8g,           Normal,         G8,  512 * 4, 1024 * 4, 1540 * 4);
+    can_get_i2c!(low_power_16g,       LowPower,       G16, 512 * 8, 1024 * 8, 1536 * 8);
+    can_get_i2c!(high_resolution_16g, HighResolution, G16, 513 * 8, 1027 * 8, 1541 * 8);
+    can_get_i2c!(normal_16g,          Normal,         G16, 512 * 8, 1024 * 8, 1540 * 8);
 }
 
 macro_rules! measurement_almost_eq {
-    ( $m1:expr, $m2:expr, $tolerance:expr ) => {
+    ( $m:expr, $x:expr, $y:expr, $z:expr, $tolerance:expr ) => {{
+        let x_mg = $m.x_mg();
+        let y_mg = $m.y_mg();
+        let z_mg = $m.z_mg();
+
         assert!(
-            ($m1.x - $m2.x).abs() < $tolerance,
+            (x_mg - $x).abs() < $tolerance,
             "x values {} and {} must be within {}",
-            $m1.x,
-            $m2.x,
+            x_mg,
+            $x,
             $tolerance
         );
         assert!(
-            ($m1.y - $m2.y).abs() < $tolerance,
+            (y_mg - $y).abs() < $tolerance,
             "y values {} and {} must be within {}",
-            $m1.y,
-            $m2.y,
+            y_mg,
+            $y,
             $tolerance
         );
         assert!(
-            ($m1.z - $m2.z).abs() < $tolerance,
+            (z_mg - $z).abs() < $tolerance,
             "z values {} and {} must be within {}",
-            $m1.z,
-            $m2.z,
+            z_mg,
+            $z,
             $tolerance
         );
-    };
+    }};
 }
 
 #[test]
@@ -148,17 +153,15 @@ fn can_get_10_bit_data() {
         ),
     ]);
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    let data = sensor.accel_data().unwrap();
+    let data = sensor.acceleration().unwrap();
     // at 2g scale and 10 bit resolution there is 4 milli-g per
     // significant digit so we expect the result to be within 4
     // of the true result
     measurement_almost_eq!(
         data,
-        Measurement {
-            x: 0x2010 / (1 << 4),
-            y: 0x4030 / (1 << 4),
-            z: 0x6050 / (1 << 4),
-        },
+        0x2010 / (1 << 4),
+        0x4030 / (1 << 4),
+        0x6050 / (1 << 4),
         4
     );
     destroy_i2c(sensor);
@@ -178,15 +181,10 @@ fn can_get_10_bit_unscaled_data() {
         ),
     ]);
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    let data = sensor.accel_data_unscaled().unwrap();
-    assert_eq!(
-        data,
-        UnscaledMeasurement {
-            x: 0x2010 / (1 << 6),
-            y: 0x4030 / (1 << 6),
-            z: 0x6050 / (1 << 6)
-        }
-    );
+    let data = sensor.acceleration().unwrap();
+    assert_eq!(data.x_unscaled(), 0x2010 / (1 << 6));
+    assert_eq!(data.y_unscaled(), 0x4030 / (1 << 6));
+    assert_eq!(data.z_unscaled(), 0x6050 / (1 << 6));
     destroy_i2c(sensor);
 }
 
@@ -211,16 +209,14 @@ fn can_get_10_bit_data_spi() {
         default_cs_n(2),
     );
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    let data = sensor.accel_data().unwrap();
+    let data = sensor.acceleration().unwrap();
     // at 2g scale there is 4 milli-g per significant digit
     // so we expect the result to be within 4 of the true result
     measurement_almost_eq!(
         data,
-        Measurement {
-            x: 0x2010 / (1 << 4),
-            y: 0x4030 / (1 << 4),
-            z: 0x6050 / (1 << 4),
-        },
+        0x2010 / (1 << 4),
+        0x4030 / (1 << 4),
+        0x6050 / (1 << 4),
         4
     );
     destroy_spi(sensor);
@@ -246,18 +242,13 @@ fn can_get_12_bit_data() {
     ]);
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
     sensor.set_accel_mode(AccelMode::HighResolution).unwrap();
-    let data = sensor.accel_data().unwrap();
+    let data = sensor.acceleration().unwrap();
     // at 2g scale and 12 bit resolution there is 1 milli-g per
     // significant digit so we expect the result to be exactly
     // equal to the true result
-    assert_eq!(
-        data,
-        Measurement {
-            x: 0x2010 / (1 << 4),
-            y: 0x4030 / (1 << 4),
-            z: 0x6050 / (1 << 4),
-        }
-    );
+    assert_eq!(data.x_mg(), 0x2010 / (1 << 4));
+    assert_eq!(data.y_mg(), 0x4030 / (1 << 4));
+    assert_eq!(data.z_mg(), 0x6050 / (1 << 4));
     destroy_i2c(sensor);
 }
 
@@ -284,17 +275,15 @@ fn can_get_8_bit_data() {
     ]);
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
     sensor.set_accel_mode(AccelMode::LowPower).unwrap();
-    let data = sensor.accel_data().unwrap();
+    let data = sensor.acceleration().unwrap();
     // at 2g scale and 8 bit resolution there is 16 milli-g per
     // significant digit so we expect the result to be within 16
     // of the true result
     measurement_almost_eq!(
         data,
-        Measurement {
-            x: 0x2010 / (1 << 4),
-            y: 0x4030 / (1 << 4),
-            z: 0x6050 / (1 << 4),
-        },
+        0x2010 / (1 << 4),
+        0x4030 / (1 << 4),
+        0x6050 / (1 << 4),
         16
     );
     destroy_i2c(sensor);
