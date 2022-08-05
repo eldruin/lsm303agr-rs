@@ -71,6 +71,7 @@
 //! ### Connect through I2C, initialize and take some measurements
 //!
 //! ```no_run
+//! # #[cfg(target_os = "linux")] {
 //! use linux_embedded_hal::I2cdev;
 //! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
 //!
@@ -86,11 +87,13 @@
 //!         println!("Acceleration: x {} y {} z {}", data.x_mg(), data.y_mg(), data.z_mg());
 //!     }
 //! }
+//! # }
 //! ```
 //!
 //! ### Connect through SPI, initialize and take some measurements
 //!
 //! ```no_run
+//! # #[cfg(target_os = "linux")] {
 //! use linux_embedded_hal::{Spidev, Pin};
 //! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
 //!
@@ -108,6 +111,7 @@
 //!         println!("Acceleration: x {} y {} z {}", data.x_mg(), data.y_mg(), data.z_mg());
 //!     }
 //! }
+//! # }
 //! ```
 
 #![deny(unsafe_code, missing_docs)]
