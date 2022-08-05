@@ -81,7 +81,7 @@
 //! sensor.set_accel_odr(AccelOutputDataRate::Hz10).unwrap();
 //!
 //! loop {
-//!     if sensor.accel_status().unwrap().xyz_new_data {
+//!     if sensor.accel_status().unwrap().xyz_new_data() {
 //!         let data = sensor.accel_data().unwrap();
 //!         println!("Acceleration: x {} y {} z {}", data.x, data.y, data.z);
 //!     }
@@ -103,7 +103,7 @@
 //! sensor.set_accel_odr(AccelOutputDataRate::Hz10).unwrap();
 //!
 //! loop {
-//!     if sensor.accel_status().unwrap().xyz_new_data {
+//!     if sensor.accel_status().unwrap().xyz_new_data() {
 //!         let data = sensor.accel_data().unwrap();
 //!         println!("Acceleration: x {} y {} z {}", data.x, data.y, data.z);
 //!     }

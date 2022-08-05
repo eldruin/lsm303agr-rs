@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+
 /// All possible errors in this crate
 #[derive(Debug)]
 pub enum Error<CommE, PinE> {
@@ -114,32 +116,112 @@ pub enum MagOutputDataRate {
     Hz100,
 }
 
+bitflags! {
+    #[derive(Default)]
+    struct StatusFlags: u8 {
+        const XDA   = 1 << 0;
+        const YDA   = 1 << 1;
+        const ZDA   = 1 << 2;
+        const ZYXDA = 1 << 3;
+        const XOR   = 1 << 4;
+        const YOR   = 1 << 5;
+        const ZOR   = 1 << 6;
+        const ZYXOR = 1 << 7;
+    }
+}
+
 /// Data status
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Status {
-    /// X,Y,Z-axis data overrun
-    pub xyz_overrun: bool,
-    /// X-axis data overrun
-    pub x_overrun: bool,
-    /// Y-axis data overrun
-    pub y_overrun: bool,
-    /// Z-axis data overrun
-    pub z_overrun: bool,
-    /// X,Y,Z-axis new data ready
-    pub xyz_new_data: bool,
-    /// X-axis data new data ready
-    pub x_new_data: bool,
-    /// Y-axis data new data ready
-    pub y_new_data: bool,
-    /// Z-axis data new data ready
-    pub z_new_data: bool,
+    flags: StatusFlags,
+}
+
+impl Status {
+    pub(crate) const fn new(flags: u8) -> Self {
+        Self {
+            flags: StatusFlags::from_bits_truncate(flags),
+        }
+    }
+
+    /// X-axis new data available.
+    #[inline]
+    pub const fn x_new_data(&self) -> bool {
+        self.flags.contains(StatusFlags::XDA)
+    }
+
+    /// Y-axis new data available.
+    #[inline]
+    pub const fn y_new_data(&self) -> bool {
+        self.flags.contains(StatusFlags::YDA)
+    }
+
+    /// Z-axis new data available.
+    #[inline]
+    pub const fn z_new_data(&self) -> bool {
+        self.flags.contains(StatusFlags::ZDA)
+    }
+
+    /// X-, Y- and Z-axis new data available.
+    #[inline]
+    pub const fn xyz_new_data(&self) -> bool {
+        self.flags.contains(StatusFlags::ZYXDA)
+    }
+
+    /// X-axis data overrun.
+    #[inline]
+    pub const fn x_overrun(&self) -> bool {
+        self.flags.contains(StatusFlags::XOR)
+    }
+
+    /// Y-axis data overrun.
+    #[inline]
+    pub const fn y_overrun(&self) -> bool {
+        self.flags.contains(StatusFlags::YOR)
+    }
+
+    /// Z-axis data overrun.
+    #[inline]
+    pub const fn z_overrun(&self) -> bool {
+        self.flags.contains(StatusFlags::ZOR)
+    }
+
+    /// X-, Y- and Z-axis data overrun.
+    #[inline]
+    pub const fn xyz_overrun(&self) -> bool {
+        self.flags.contains(StatusFlags::ZYXOR)
+    }
+}
+
+bitflags! {
+    #[derive(Default)]
+    struct TemperatureStatusFlags: u8 {
+        const TDA = 1 << 2;
+        const TOR = 1 << 6;
+    }
 }
 
 /// Temperature sensor status
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct TemperatureStatus {
-    /// Data overrun
-    pub overrun: bool,
-    /// New data ready
-    pub new_data: bool,
+    flags: TemperatureStatusFlags,
+}
+
+impl TemperatureStatus {
+    pub(crate) const fn new(flags: u8) -> Self {
+        Self {
+            flags: TemperatureStatusFlags::from_bits_truncate(flags),
+        }
+    }
+
+    /// Temperature data overrun.
+    #[inline]
+    pub const fn overrun(&self) -> bool {
+        self.flags.contains(TemperatureStatusFlags::TOR)
+    }
+
+    /// Temperature new data available.
+    #[inline]
+    pub const fn new_data(&self) -> bool {
+        self.flags.contains(TemperatureStatusFlags::TDA)
+    }
 }

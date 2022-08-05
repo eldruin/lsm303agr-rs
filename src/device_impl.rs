@@ -86,7 +86,7 @@ where
     pub fn accel_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
         self.iface
             .read_accel_register(Register::STATUS_REG_A)
-            .map(convert_status)
+            .map(Status::new)
     }
 
     /// Accelerometer data
@@ -155,7 +155,7 @@ where
     pub fn mag_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
         self.iface
             .read_mag_register(Register::STATUS_REG_M)
-            .map(convert_status)
+            .map(Status::new)
     }
 
     /// Get accelerometer device ID
@@ -198,26 +198,6 @@ where
     pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
         self.iface
             .read_accel_register(Register::STATUS_REG_AUX_A)
-            .map(convert_temperature_status)
-    }
-}
-
-fn convert_status(st: u8) -> Status {
-    Status {
-        xyz_overrun: (st & BF::XYZOR) != 0,
-        z_overrun: (st & BF::ZOR) != 0,
-        y_overrun: (st & BF::YOR) != 0,
-        x_overrun: (st & BF::XOR) != 0,
-        xyz_new_data: (st & BF::XYZDR) != 0,
-        z_new_data: (st & BF::ZDR) != 0,
-        y_new_data: (st & BF::YDR) != 0,
-        x_new_data: (st & BF::XDR) != 0,
-    }
-}
-
-fn convert_temperature_status(st: u8) -> TemperatureStatus {
-    TemperatureStatus {
-        overrun: (st & BF::TOR) != 0,
-        new_data: (st & BF::TDA) != 0,
+            .map(TemperatureStatus::new)
     }
 }

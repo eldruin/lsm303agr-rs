@@ -34,18 +34,6 @@ impl BitFlags {
     pub const MAG_OFF_CANC: u8 = 1 << 1;
     pub const MAG_OFF_CANC_ONE_SHOT: u8 = 1 << 4;
 
-    pub const XDR: u8 = 1;
-    pub const YDR: u8 = 1 << 1;
-    pub const ZDR: u8 = 1 << 2;
-    pub const XYZDR: u8 = 1 << 3;
-    pub const XOR: u8 = 1 << 4;
-    pub const YOR: u8 = 1 << 5;
-    pub const ZOR: u8 = 1 << 6;
-    pub const XYZOR: u8 = 1 << 7;
-
-    pub const TDA: u8 = 1 << 2;
-    pub const TOR: u8 = 1 << 6;
-
     pub const TEMP_EN0: u8 = 1 << 6;
     pub const TEMP_EN1: u8 = 1 << 7;
 }
