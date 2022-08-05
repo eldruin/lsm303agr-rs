@@ -82,8 +82,8 @@
 //!
 //! loop {
 //!     if sensor.accel_status().unwrap().xyz_new_data() {
-//!         let data = sensor.accel_data().unwrap();
-//!         println!("Acceleration: x {} y {} z {}", data.x, data.y, data.z);
+//!         let data = sensor.acceleration().unwrap();
+//!         println!("Acceleration: x {} y {} z {}", data.x_mg(), data.y_mg(), data.z_mg());
 //!     }
 //! }
 //! ```
@@ -104,8 +104,8 @@
 //!
 //! loop {
 //!     if sensor.accel_status().unwrap().xyz_new_data() {
-//!         let data = sensor.accel_data().unwrap();
-//!         println!("Acceleration: x {} y {} z {}", data.x, data.y, data.z);
+//!         let data = sensor.acceleration().unwrap();
+//!         println!("Acceleration: x {} y {} z {}", data.x_mg(), data.y_mg(), data.z_mg());
 //!     }
 //! }
 //! ```
@@ -122,8 +122,8 @@ mod mag_mode_change;
 mod magnetometer;
 mod types;
 pub use crate::types::{
-    mode, AccelMode, AccelOutputDataRate, AccelScale, Error, MagOutputDataRate, Measurement,
-    ModeChangeError, Status, TemperatureStatus, UnscaledMeasurement,
+    mode, AccelMode, AccelOutputDataRate, AccelScale, Acceleration, Error, MagOutputDataRate,
+    Measurement, ModeChangeError, Status, TemperatureStatus, UnscaledMeasurement,
 };
 mod register_address;
 use crate::register_address::{BitFlags, Register};
