@@ -472,10 +472,8 @@ pub struct Status {
 }
 
 impl Status {
-    pub(crate) const fn new(flags: u8) -> Self {
-        Self {
-            flags: StatusFlags::from_bits_truncate(flags),
-        }
+    pub(crate) const fn new(flags: StatusFlags) -> Self {
+        Self { flags }
     }
 
     /// X-axis new data available.
@@ -534,10 +532,8 @@ pub struct TemperatureStatus {
 }
 
 impl TemperatureStatus {
-    pub(crate) const fn new(flags: u8) -> Self {
-        Self {
-            flags: StatusRegAuxA::from_bits_truncate(flags),
-        }
+    pub(crate) const fn new(flags: StatusRegAuxA) -> Self {
+        Self { flags }
     }
 
     /// Temperature data overrun.

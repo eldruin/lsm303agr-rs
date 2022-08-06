@@ -1,42 +1,3 @@
-#![allow(dead_code)] // TODO: Remove.
-
-pub struct Register;
-
-impl Register {
-    pub const WHO_AM_I_A: u8 = 0x0F;
-    pub const TEMP_CFG_REG_A: u8 = 0x1F;
-    pub const CTRL_REG1_A: u8 = 0x20;
-    pub const CTRL_REG4_A: u8 = 0x23;
-    pub const STATUS_REG_A: u8 = 0x27;
-    pub const OUT_X_L_A: u8 = 0x28;
-    pub const WHO_AM_I_M: u8 = 0x4F;
-    pub const CFG_REG_A_M: u8 = 0x60;
-    pub const CFG_REG_B_M: u8 = 0x61;
-    pub const CFG_REG_C_M: u8 = 0x62;
-    pub const STATUS_REG_M: u8 = 0x67;
-    pub const OUTX_L_REG_M: u8 = 0x68;
-}
-
-pub struct BitFlags;
-
-impl BitFlags {
-    pub const SPI_RW: u8 = 1 << 7;
-    pub const SPI_MS: u8 = 1 << 6;
-
-    pub const LP_EN: u8 = 1 << 3;
-
-    pub const ACCEL_BDU: u8 = 1 << 7;
-    pub const HR: u8 = 1 << 3;
-
-    pub const MAG_BDU: u8 = 1 << 4;
-
-    pub const MAG_OFF_CANC: u8 = 1 << 1;
-    pub const MAG_OFF_CANC_ONE_SHOT: u8 = 1 << 4;
-
-    pub const TEMP_EN0: u8 = 1 << 6;
-    pub const TEMP_EN1: u8 = 1 << 7;
-    pub const TEMP_EN: u8 = Self::TEMP_EN0 | Self::TEMP_EN1;
-}
 use crate::types::{
     AccelOutputDataRate, AccelScale, AccelerometerId, MagOutputDataRate, MagnetometerId,
     StatusFlags,
@@ -380,6 +341,7 @@ impl CfgRegAM {
         self.difference(CfgRegAM::MD1).union(CfgRegAM::MD0) // 0b01
     }
 
+    #[cfg(test)]
     pub const fn is_idle_mode(&self) -> bool {
         self.contains(CfgRegAM::MD1) // 0b10 or 0b11
     }
