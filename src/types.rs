@@ -236,6 +236,40 @@ pub enum AccelOutputDataRate {
     Khz5_376LowPower,
 }
 
+impl AccelOutputDataRate {
+    /// 1/ODR
+    pub(crate) const fn turn_on_time_us_frac_1(&self) -> u32 {
+        match self {
+            Self::Hz1 => 1000,
+            Self::Hz10 => 100,
+            Self::Hz25 => 40,
+            Self::Hz50 => 20,
+            Self::Hz100 => 10,
+            Self::Hz200 => 5,
+            Self::Hz400 => 3,            // 2.5
+            Self::Khz1_344 => 1,         // ~0.7
+            Self::Khz1_620LowPower => 1, // ~0.6
+            Self::Khz5_376LowPower => 1, // ~0.2
+        }
+    }
+
+    /// 7/ODR
+    pub(crate) const fn turn_on_time_us_frac_7(&self) -> u32 {
+        match self {
+            Self::Hz1 => 7000,
+            Self::Hz10 => 700,
+            Self::Hz25 => 280,
+            Self::Hz50 => 140,
+            Self::Hz100 => 70,
+            Self::Hz200 => 35,
+            Self::Hz400 => 18,           // 17.5
+            Self::Khz1_344 => 6,         // ~5.2
+            Self::Khz1_620LowPower => 5, // ~4.3
+            Self::Khz5_376LowPower => 2, // ~1.3
+        }
+    }
+}
+
 /// Accelerometer mode
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AccelMode {
@@ -250,6 +284,28 @@ pub enum AccelMode {
 }
 
 impl AccelMode {
+    pub(crate) const fn turn_on_time_us(&self, odr: AccelOutputDataRate) -> u32 {
+        match self {
+            Self::PowerDown => 0,
+            Self::LowPower => 1000,
+            Self::Normal => 1600,
+            Self::HighResolution => odr.turn_on_time_us_frac_7(),
+        }
+    }
+
+    pub(crate) const fn change_time_us(&self, other: AccelMode, odr: AccelOutputDataRate) -> u32 {
+        match (self, other) {
+            (Self::HighResolution, Self::LowPower) => odr.turn_on_time_us_frac_1(),
+            (Self::HighResolution, Self::Normal) => odr.turn_on_time_us_frac_1(),
+            (Self::Normal, Self::LowPower) => odr.turn_on_time_us_frac_1(),
+            (Self::Normal, Self::HighResolution) => odr.turn_on_time_us_frac_7(),
+            (Self::LowPower, Self::Normal) => odr.turn_on_time_us_frac_1(),
+            (Self::LowPower, Self::HighResolution) => odr.turn_on_time_us_frac_7(),
+            (Self::PowerDown, new_mode) => new_mode.turn_on_time_us(odr),
+            _ => 0,
+        }
+    }
+
     pub(crate) const fn resolution_factor(&self) -> i16 {
         match self {
             Self::PowerDown => 1,

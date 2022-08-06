@@ -3,7 +3,9 @@ use crate::common::{
     default_cs_n, destroy_i2c, destroy_spi, new_i2c, new_spi_accel, BitFlags as BF, Register,
     ACCEL_ADDR, DEFAULT_CTRL_REG1_A, HZ50,
 };
-use embedded_hal_mock::{i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans};
+use embedded_hal_mock::{
+    delay::MockNoop as Delay, i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans,
+};
 use lsm303agr::AccelOutputDataRate;
 
 #[test]
@@ -56,7 +58,9 @@ fn can_read_temperature_i2c() {
         ),
     ]);
 
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
+    sensor
+        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .unwrap();
     let data = sensor.temperature().unwrap();
 
     assert_eq!(data.raw(), 0xe2b3);
@@ -79,7 +83,9 @@ fn can_read_temperature_spi() {
         default_cs_n(2),
     );
 
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
+    sensor
+        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .unwrap();
     let data = sensor.temperature().unwrap();
 
     assert_eq!(data.raw(), 0x2010);
