@@ -252,25 +252,25 @@ impl MagneticField {
 /// Accelerometer output data rate
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AccelOutputDataRate {
-    /// 1 Hz (High-resolution/Normal/Low-power)
+    /// 1 Hz (all modes)
     Hz1,
-    /// 10 Hz (High-resolution/Normal/Low-power)
+    /// 10 Hz all modes)
     Hz10,
-    /// 25 Hz (High-resolution/Normal/Low-power)
+    /// 25 Hz (all modes)
     Hz25,
-    /// 50 Hz (High-resolution/Normal/Low-power)
+    /// 50 Hz (all modes)
     Hz50,
-    /// 100 Hz (High-resolution/Normal/Low-power)
+    /// 100 Hz (all modes)
     Hz100,
-    /// 200 Hz (High-resolution/Normal/Low-power)
+    /// 200 Hz (all modes)
     Hz200,
-    /// 400 Hz (High-resolution/Normal/Low-power)
+    /// 400 Hz (all modes)
     Hz400,
-    /// 1.344 kHz (High-resolution/Normal)
+    /// 1.344 kHz (only normal and high-resolution modes)
     Khz1_344,
-    /// 1.620 kHz (Low-power)
+    /// 1.620 kHz (only low-power mode)
     Khz1_620LowPower,
-    /// 5.376 kHz (Low-power)
+    /// 5.376 kHz (only low-power mode)
     Khz5_376LowPower,
 }
 
@@ -301,7 +301,7 @@ impl AccelOutputDataRate {
             Self::Hz50 => 20,
             Self::Hz100 => 10,
             Self::Hz200 => 5,
-            Self::Hz400 => 3,            // 2.5
+            Self::Hz400 => 3,            //  2.5
             Self::Khz1_344 => 1,         // ~0.7
             Self::Khz1_620LowPower => 1, // ~0.6
             Self::Khz5_376LowPower => 1, // ~0.2
