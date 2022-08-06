@@ -404,3 +404,31 @@ impl TemperatureStatus {
         self.flags.contains(TemperatureStatusFlags::TDA)
     }
 }
+
+/// A temperature measurement.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Temperature {
+    pub(crate) raw: u16,
+}
+
+impl Temperature {
+    const DEFAULT: f32 = 25.0;
+
+    /// Raw temperature.
+    #[inline]
+    pub const fn raw(&self) -> u16 {
+        self.raw
+    }
+
+    /// Unscaled temperature.
+    #[inline]
+    pub const fn unscaled(&self) -> i16 {
+        self.raw as i16
+    }
+
+    /// Temperature in °C.
+    #[inline]
+    pub fn degrees_celsius(&self) -> f32 {
+        (self.unscaled() as f32) / 256.0 + Self::DEFAULT
+    }
+}

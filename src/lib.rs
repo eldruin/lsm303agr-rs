@@ -123,7 +123,7 @@ mod magnetometer;
 mod types;
 pub use crate::types::{
     mode, AccelMode, AccelOutputDataRate, AccelScale, Acceleration, Error, MagOutputDataRate,
-    MagneticField, ModeChangeError, Status, TemperatureStatus,
+    MagneticField, ModeChangeError, Status, Temperature, TemperatureStatus,
 };
 mod register_address;
 use crate::register_address::{BitFlags, Register};
@@ -160,7 +160,7 @@ impl Config {
         }
     }
     fn is_high(self, mask: u8) -> bool {
-        (self.bits & mask) != 0
+        (self.bits & mask) == mask
     }
 }
 
