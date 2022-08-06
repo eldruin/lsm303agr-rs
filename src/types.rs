@@ -275,6 +275,23 @@ pub enum AccelOutputDataRate {
 }
 
 impl AccelOutputDataRate {
+    /// Create an `AccelOutputDataRate` with the given frequency in Hertz.
+    pub const fn from_hertz(hz: u16) -> Option<Self> {
+        Some(match hz {
+            1 => Self::Hz1,
+            10 => Self::Hz10,
+            25 => Self::Hz25,
+            50 => Self::Hz50,
+            100 => Self::Hz100,
+            200 => Self::Hz200,
+            400 => Self::Hz400,
+            1344 => Self::Khz1_344,
+            1620 => Self::Khz1_620LowPower,
+            5376 => Self::Khz5_376LowPower,
+            _ => return None,
+        })
+    }
+
     /// 1/ODR ms
     pub(crate) const fn turn_on_time_us_frac_1(&self) -> u32 {
         match self {
