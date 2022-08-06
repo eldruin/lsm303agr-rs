@@ -36,4 +36,5 @@ impl BitFlags {
 
     pub const TEMP_EN0: u8 = 1 << 6;
     pub const TEMP_EN1: u8 = 1 << 7;
+    pub const TEMP_EN: u8 = Self::TEMP_EN0 | Self::TEMP_EN1;
 }
