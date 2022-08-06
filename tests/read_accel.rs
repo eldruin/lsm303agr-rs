@@ -3,7 +3,9 @@ use crate::common::{
     default_cs_n, destroy_i2c, destroy_spi, new_i2c, new_spi_accel, BitFlags as BF, Register,
     ACCEL_ADDR, DEFAULT_CTRL_REG1_A, HZ50,
 };
-use embedded_hal_mock::{i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans};
+use embedded_hal_mock::{
+    delay::MockNoop as Delay, i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans,
+};
 use lsm303agr::{AccelMode, AccelOutputDataRate, AccelScale};
 
 fn i2c_mode_txns(mode: &AccelMode) -> Vec<I2cTrans> {
@@ -70,10 +72,12 @@ macro_rules! can_get_i2c {
                 vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
             ));
             let mut sensor = new_i2c(&txns);
-            sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
+            sensor
+                .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+                .unwrap();
 
             if let AccelMode::LowPower | AccelMode::HighResolution = mode {
-                sensor.set_accel_mode(mode).unwrap();
+                sensor.set_accel_mode(&mut Delay, mode).unwrap();
             }
             if let AccelScale::G2 = scale {
             } else {
@@ -160,8 +164,12 @@ fn can_get_8_bit_data_i2c() {
             vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
         ),
     ]);
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    sensor.set_accel_mode(AccelMode::LowPower).unwrap();
+    sensor
+        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .unwrap();
+    sensor
+        .set_accel_mode(&mut Delay, AccelMode::LowPower)
+        .unwrap();
     let data = sensor.acceleration().unwrap();
 
     assert_eq!(data.x_raw(), 0x2010);
@@ -198,7 +206,9 @@ fn can_get_10_bit_data_i2c() {
             vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
         ),
     ]);
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
+    sensor
+        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .unwrap();
     let data = sensor.acceleration().unwrap();
 
     assert_eq!(data.x_raw(), 0x2010);
@@ -243,7 +253,9 @@ fn can_get_10_bit_data_spi() {
         ],
         default_cs_n(2),
     );
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
+    sensor
+        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .unwrap();
     let data = sensor.acceleration().unwrap();
 
     assert_eq!(data.x_raw(), 0x2010);
@@ -284,8 +296,12 @@ fn can_get_12_bit_data_i2c() {
             vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
         ),
     ]);
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    sensor.set_accel_mode(AccelMode::HighResolution).unwrap();
+    sensor
+        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .unwrap();
+    sensor
+        .set_accel_mode(&mut Delay, AccelMode::HighResolution)
+        .unwrap();
     let data = sensor.acceleration().unwrap();
 
     assert_eq!(data.x_raw(), 0x2010);

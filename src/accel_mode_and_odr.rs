@@ -1,3 +1,5 @@
+use embedded_hal::blocking::delay::DelayUs;
+
 use crate::{
     interface::{ReadData, WriteData},
     AccelMode, AccelOutputDataRate, AccelScale, BitFlags as BF, Error, Lsm303agr, Register,
@@ -12,7 +14,13 @@ where
     /// This changes the power mode if the current one is not appropriate.
     /// When changing from a low-power-only output data rate setting into
     /// a high-resolution or normal power mode, it changes into normal mode.
-    pub fn set_accel_odr(&mut self, odr: AccelOutputDataRate) -> Result<(), Error<CommE, PinE>> {
+    pub fn set_accel_odr<D: DelayUs<u32>>(
+        &mut self,
+        delay: &mut D,
+        odr: AccelOutputDataRate,
+    ) -> Result<(), Error<CommE, PinE>> {
+        let old_mode = self.get_accel_mode();
+
         let (mask, lp_only, lp_compat) = match odr {
             AccelOutputDataRate::Hz1 => (1 << 4, false, true),
             AccelOutputDataRate::Hz10 => (2 << 4, false, true),
@@ -49,6 +57,11 @@ where
             .write_accel_register(Register::CTRL_REG1_A, reg1)?;
         self.ctrl_reg1_a = reg1.into();
         self.accel_odr = Some(odr);
+
+        let mode = self.get_accel_mode();
+        let change_time = old_mode.change_time_us(mode, odr);
+        delay.delay_us(change_time);
+
         Ok(())
     }
 
@@ -56,8 +69,14 @@ where
     ///
     /// Returns `Error::InvalidInputData` if the mode is incompatible with the current
     /// accelerometer output data rate.
-    pub fn set_accel_mode(&mut self, mode: AccelMode) -> Result<(), Error<CommE, PinE>> {
+    pub fn set_accel_mode<D: DelayUs<u32>>(
+        &mut self,
+        delay: &mut D,
+        mode: AccelMode,
+    ) -> Result<(), Error<CommE, PinE>> {
         check_accel_odr_is_compatible_with_mode(self.accel_odr, mode)?;
+
+        let old_mode = self.get_accel_mode();
 
         match mode {
             AccelMode::HighResolution => {
@@ -80,6 +99,12 @@ where
                 self.accel_odr = None;
             }
         }
+
+        if let Some(odr) = self.accel_odr {
+            let change_time = old_mode.change_time_us(mode, odr);
+            delay.delay_us(change_time);
+        }
+
         Ok(())
     }
 
