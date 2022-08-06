@@ -2,7 +2,8 @@ use embedded_hal::blocking::delay::DelayUs;
 
 use crate::{
     interface::{ReadData, WriteData},
-    AccelMode, AccelOutputDataRate, AccelScale, BitFlags as BF, Error, Lsm303agr, Register,
+    register_address::{CtrlReg1A, CtrlReg4A},
+    AccelMode, AccelOutputDataRate, AccelScale, Error, Lsm303agr,
 };
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
@@ -23,40 +24,17 @@ where
     ) -> Result<(), Error<CommE, PinE>> {
         let old_mode = self.get_accel_mode();
 
-        let (mask, lp_only, lp_compat) = match odr {
-            AccelOutputDataRate::Hz1 => (1 << 4, false, true),
-            AccelOutputDataRate::Hz10 => (2 << 4, false, true),
-            AccelOutputDataRate::Hz25 => (3 << 4, false, true),
-            AccelOutputDataRate::Hz50 => (4 << 4, false, true),
-            AccelOutputDataRate::Hz100 => (5 << 4, false, true),
-            AccelOutputDataRate::Hz200 => (6 << 4, false, true),
-            AccelOutputDataRate::Hz400 => (7 << 4, false, true),
-            AccelOutputDataRate::Khz1_620LowPower => (8 << 4, true, true),
-            AccelOutputDataRate::Khz1_344 => (9 << 4, false, false),
-            AccelOutputDataRate::Khz5_376LowPower => (9 << 4, true, true),
-        };
-        let lp_enabled = self.ctrl_reg1_a.is_high(BF::LP_EN);
-        let hr_enabled = self.ctrl_reg4_a.is_high(BF::HR);
-        let mut should_lp_be_enabled = lp_enabled;
-        if lp_enabled {
-            if !lp_compat {
-                // HR could not have been enabled.
-                should_lp_be_enabled = false;
-            }
-        } else {
-            // Currently normal or HR mode
-            if lp_only {
-                if hr_enabled {
-                    self.disable_hr()?;
-                }
-                // power mode is (now) normal
-                should_lp_be_enabled = true;
+        let reg1 = self.ctrl_reg1_a.with_odr(odr);
+
+        // Check if low-power mode should be enabled.
+        if reg1.contains(CtrlReg1A::LPEN) {
+            // Disable high-resolution mode if it is enabled.
+            if self.ctrl_reg4_a.contains(CtrlReg4A::HR) {
+                self.disable_hr()?;
             }
         }
-        let lp_flag = if should_lp_be_enabled { BF::LP_EN } else { 0 };
-        let reg1 = (self.ctrl_reg1_a.bits & !(BF::LP_EN | (0x7 << 4))) | mask | lp_flag;
-        self.iface
-            .write_accel_register(Register::CTRL_REG1_A, reg1)?;
+
+        self.iface.write_accel_register(reg1)?;
         self.ctrl_reg1_a = reg1.into();
         self.accel_odr = Some(odr);
 
@@ -96,10 +74,9 @@ where
                 self.enable_lp()?;
             }
             AccelMode::PowerDown => {
-                let reg1 = self.ctrl_reg1_a.bits & !(0xf << 4);
-                self.iface
-                    .write_accel_register(Register::CTRL_REG1_A, reg1)?;
-                self.ctrl_reg1_a = reg1.into();
+                let reg1 = self.ctrl_reg1_a.difference(CtrlReg1A::ODR);
+                self.iface.write_accel_register(reg1)?;
+                self.ctrl_reg1_a = reg1;
                 self.accel_odr = None;
             }
         }
@@ -114,9 +91,9 @@ where
 
     /// Get the accelerometer mode
     pub fn get_accel_mode(&mut self) -> AccelMode {
-        let power_down = (self.ctrl_reg1_a.bits >> 4 & 0xf) == 0;
-        let lp_enabled = self.ctrl_reg1_a.is_high(BF::LP_EN);
-        let hr_enabled = self.ctrl_reg4_a.is_high(BF::HR);
+        let power_down = self.ctrl_reg1_a.intersection(CtrlReg1A::ODR).is_empty();
+        let lp_enabled = self.ctrl_reg1_a.contains(CtrlReg1A::LPEN);
+        let hr_enabled = self.ctrl_reg4_a.contains(CtrlReg4A::HR);
 
         if power_down {
             AccelMode::PowerDown
@@ -135,59 +112,41 @@ where
     /// `AccelScale::G2` for example can return values between -2g and +2g
     /// where g is the gravity of the earth (~9.82 m/s²).
     pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE, PinE>> {
-        let fs = match scale {
-            AccelScale::G2 => 0b00,
-            AccelScale::G4 => 0b01,
-            AccelScale::G8 => 0b10,
-            AccelScale::G16 => 0b11,
-        };
-        let reg4 = self.ctrl_reg4_a.bits & !(0b11 << 4) | (fs << 4);
-        self.iface
-            .write_accel_register(Register::CTRL_REG4_A, reg4)?;
-        self.ctrl_reg4_a = reg4.into();
+        let reg4 = self.ctrl_reg4_a.with_scale(scale);
+        self.iface.write_accel_register(reg4)?;
+        self.ctrl_reg4_a = reg4;
         Ok(())
     }
 
     /// Get accelerometer scaling factor
     pub fn get_accel_scale(&self) -> AccelScale {
-        let fs = (self.ctrl_reg4_a.bits & (0b11 << 4)) >> 4;
-        match fs {
-            0b00 => AccelScale::G2,
-            0b01 => AccelScale::G4,
-            0b10 => AccelScale::G8,
-            0b11 => AccelScale::G16,
-            _ => unreachable!("bit shift above means we cannot be here"),
-        }
+        self.ctrl_reg4_a.scale()
     }
 
     fn enable_hr(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg4 = self.ctrl_reg4_a.with_high(BF::HR);
-        self.iface
-            .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
+        let reg4 = self.ctrl_reg4_a.union(CtrlReg4A::HR);
+        self.iface.write_accel_register(reg4)?;
         self.ctrl_reg4_a = reg4;
         Ok(())
     }
 
     fn disable_hr(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg4 = self.ctrl_reg4_a.with_low(BF::HR);
-        self.iface
-            .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
+        let reg4 = self.ctrl_reg4_a.difference(CtrlReg4A::HR);
+        self.iface.write_accel_register(reg4)?;
         self.ctrl_reg4_a = reg4;
         Ok(())
     }
 
     fn enable_lp(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg1 = self.ctrl_reg1_a.with_high(BF::LP_EN);
-        self.iface
-            .write_accel_register(Register::CTRL_REG1_A, reg1.bits)?;
+        let reg1 = self.ctrl_reg1_a.union(CtrlReg1A::LPEN);
+        self.iface.write_accel_register(reg1)?;
         self.ctrl_reg1_a = reg1;
         Ok(())
     }
 
     fn disable_lp(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg1 = self.ctrl_reg1_a.with_low(BF::LP_EN);
-        self.iface
-            .write_accel_register(Register::CTRL_REG1_A, reg1.bits)?;
+        let reg1 = self.ctrl_reg1_a.difference(CtrlReg1A::LPEN);
+        self.iface.write_accel_register(reg1)?;
         self.ctrl_reg1_a = reg1;
         Ok(())
     }

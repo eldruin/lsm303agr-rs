@@ -1,9 +1,12 @@
 use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
     mode,
-    register_address::{RegRead, StatusRegAuxA},
-    Acceleration, AccelerometerId, BitFlags as BF, Config, Error, Lsm303agr, MagnetometerId,
-    PhantomData, Register, Status, Temperature, TemperatureStatus,
+    register_address::{
+        CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg4A, StatusRegA, StatusRegAuxA, StatusRegM,
+        TempCfgRegA, WhoAmIA, WhoAmIM,
+    },
+    Acceleration, AccelerometerId, Error, Lsm303agr, MagnetometerId, PhantomData, Status,
+    Temperature, TemperatureStatus,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -11,12 +14,12 @@ impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
     pub fn new_with_i2c(i2c: I2C) -> Self {
         Lsm303agr {
             iface: I2cInterface { i2c },
-            ctrl_reg1_a: Config { bits: 0x7 },
-            ctrl_reg4_a: Config { bits: 0 },
-            cfg_reg_a_m: Config { bits: 0x3 },
-            cfg_reg_b_m: Config { bits: 0 },
-            cfg_reg_c_m: Config { bits: 0 },
-            temp_cfg_reg_a: Config { bits: 0 },
+            ctrl_reg1_a: CtrlReg1A::default(),
+            ctrl_reg4_a: CtrlReg4A::default(),
+            cfg_reg_a_m: CfgRegAM::default(),
+            cfg_reg_b_m: CfgRegBM::default(),
+            cfg_reg_c_m: CfgRegCM::default(),
+            temp_cfg_reg_a: TempCfgRegA::default(),
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -39,12 +42,12 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneSho
                 cs_xl: chip_select_accel,
                 cs_mag: chip_select_mag,
             },
-            ctrl_reg1_a: Config { bits: 0x7 },
-            ctrl_reg4_a: Config { bits: 0 },
-            cfg_reg_a_m: Config { bits: 0x3 },
-            cfg_reg_b_m: Config { bits: 0 },
-            cfg_reg_c_m: Config { bits: 0 },
-            temp_cfg_reg_a: Config { bits: 0 },
+            ctrl_reg1_a: CtrlReg1A::default(),
+            ctrl_reg4_a: CtrlReg4A::default(),
+            cfg_reg_a_m: CfgRegAM::default(),
+            cfg_reg_b_m: CfgRegBM::default(),
+            cfg_reg_c_m: CfgRegCM::default(),
+            temp_cfg_reg_a: TempCfgRegA::default(),
             accel_odr: None,
             _mag_mode: PhantomData,
         }
@@ -70,9 +73,8 @@ where
 
     /// Enable block data update for accelerometer.
     fn acc_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg4 = self.ctrl_reg4_a.with_high(BF::ACCEL_BDU);
-        self.iface
-            .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
+        let reg4 = self.ctrl_reg4_a | CtrlReg4A::BDU;
+        self.iface.write_accel_register(reg4)?;
         self.ctrl_reg4_a = reg4;
 
         Ok(())
@@ -83,9 +85,8 @@ where
     fn acc_enable_temp(&mut self) -> Result<(), Error<CommE, PinE>> {
         self.acc_enable_bdu()?;
 
-        let temp_cfg_reg = self.temp_cfg_reg_a.with_high(BF::TEMP_EN);
-        self.iface
-            .write_accel_register(Register::TEMP_CFG_REG_A, temp_cfg_reg.bits)?;
+        let temp_cfg_reg = self.temp_cfg_reg_a | TempCfgRegA::TEMP_EN;
+        self.iface.write_accel_register(temp_cfg_reg)?;
         self.temp_cfg_reg_a = temp_cfg_reg;
 
         Ok(())
@@ -94,9 +95,17 @@ where
     /// Enable block data update for magnetometer.
     #[inline]
     fn mag_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let regc = self.cfg_reg_c_m.with_high(BF::MAG_BDU);
-        self.iface
-            .write_mag_register(Register::CFG_REG_C_M, regc.bits)?;
+        let regc = self.cfg_reg_c_m | CfgRegCM::BDU;
+        self.iface.write_mag_register(regc)?;
+        self.cfg_reg_c_m = regc;
+
+        Ok(())
+    }
+
+    /// Configure the DRDY pin as a digital output.
+    pub fn mag_enable_int(&mut self) -> Result<(), Error<CommE, PinE>> {
+        let regc = self.cfg_reg_c_m | CfgRegCM::INT_MAG;
+        self.iface.write_mag_register(regc)?;
         self.cfg_reg_c_m = regc;
 
         Ok(())
@@ -105,15 +114,13 @@ where
     /// Accelerometer status
     pub fn accel_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
         self.iface
-            .read_accel_register(Register::STATUS_REG_A)
+            .read_accel_register::<StatusRegA>()
             .map(Status::new)
     }
 
     /// Get measured acceleration.
     pub fn acceleration(&mut self) -> Result<Acceleration, Error<CommE, PinE>> {
-        let (x, y, z) = self
-            .iface
-            .read_accel_3_double_registers(Register::OUT_X_L_A)?;
+        let (x, y, z) = self.iface.read_accel_3_double_registers::<Acceleration>()?;
 
         Ok(Acceleration {
             x,
@@ -127,33 +134,29 @@ where
     /// Magnetometer status
     pub fn mag_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
         self.iface
-            .read_mag_register(Register::STATUS_REG_M)
+            .read_mag_register::<StatusRegM>()
             .map(Status::new)
     }
 
     /// Get the accelerometer device ID.
     pub fn accelerometer_id(&mut self) -> Result<AccelerometerId, Error<CommE, PinE>> {
-        let id = self.iface.read_accel_register(Register::WHO_AM_I_A)?;
-        Ok(AccelerometerId::from_bits_truncate(id))
+        self.iface.read_accel_register::<WhoAmIA>()
     }
 
     /// Get the magnetometer device ID.
     pub fn magnetometer_id(&mut self) -> Result<MagnetometerId, Error<CommE, PinE>> {
-        let id = self.iface.read_mag_register(Register::WHO_AM_I_M)?;
-        Ok(MagnetometerId::from_bits_truncate(id))
+        self.iface.read_mag_register::<WhoAmIM>()
     }
 
     /// Get measured temperature.
     pub fn temperature(&mut self) -> Result<Temperature, Error<CommE, PinE>> {
-        let data = self.iface.read_accel_double_register(Temperature::ADDR)?;
-
-        Ok(Temperature { raw: data })
+        self.iface.read_accel_double_register::<Temperature>()
     }
 
     /// Temperature sensor status
     pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
         self.iface
-            .read_accel_register(StatusRegAuxA::ADDR)
+            .read_accel_register::<StatusRegAuxA>()
             .map(TemperatureStatus::new)
     }
 }

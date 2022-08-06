@@ -128,50 +128,21 @@ pub use crate::types::{
     TemperatureStatus,
 };
 mod register_address;
-use crate::register_address::{BitFlags, Register};
+use crate::register_address::{CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg4A, TempCfgRegA};
 
 /// LSM303AGR device driver
 #[derive(Debug)]
 pub struct Lsm303agr<DI, MODE> {
     /// Digital interface: I2C or SPI
     iface: DI,
-    ctrl_reg1_a: Config,
-    ctrl_reg4_a: Config,
-    cfg_reg_a_m: Config,
-    cfg_reg_b_m: Config,
-    cfg_reg_c_m: Config,
-    temp_cfg_reg_a: Config,
+    ctrl_reg1_a: CtrlReg1A,
+    ctrl_reg4_a: CtrlReg4A,
+    cfg_reg_a_m: CfgRegAM,
+    cfg_reg_b_m: CfgRegBM,
+    cfg_reg_c_m: CfgRegCM,
+    temp_cfg_reg_a: TempCfgRegA,
     accel_odr: Option<AccelOutputDataRate>,
     _mag_mode: PhantomData<MODE>,
-}
-
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
-struct Config {
-    bits: u8,
-}
-
-impl Config {
-    fn with_high(self, mask: u8) -> Self {
-        Config {
-            bits: self.bits | mask,
-        }
-    }
-
-    fn with_low(self, mask: u8) -> Self {
-        Config {
-            bits: self.bits & !mask,
-        }
-    }
-
-    fn is_high(self, mask: u8) -> bool {
-        (self.bits & mask) != 0
-    }
-}
-
-impl From<u8> for Config {
-    fn from(bits: u8) -> Self {
-        Config { bits }
-    }
 }
 
 mod private {
