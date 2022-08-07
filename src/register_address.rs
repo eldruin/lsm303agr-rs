@@ -1,5 +1,5 @@
 use crate::types::{
-    AccelOutputDataRate, AccelScale, AccelerometerId, MagOutputDataRate, MagnetometerId,
+    AccelOutputDataRate, AccelScale, AccelerometerId, FifoMode, MagOutputDataRate, MagnetometerId,
     StatusFlags,
 };
 
@@ -208,6 +208,7 @@ impl CtrlReg4A {
 
 register! {
   /// CTRL_REG5_A
+  #[derive(Default)]
   pub struct CtrlReg5A: 0x24 {
     const BOOT     = 0b10000000;
     const FIFO_EN  = 0b01000000;
@@ -237,6 +238,7 @@ register! {
 
 register! {
   /// FIFO_CTRL_REG_A
+  #[derive(Default)]
   pub struct FifoCtrlRegA: 0x2E {
     const FM1  = 0b10000000;
     const FM0  = 0b01000000;
@@ -246,7 +248,31 @@ register! {
     const FTH2 = 0b00000100;
     const FTH1 = 0b00000010;
     const FTH0 = 0b00000001;
+
+    const FM = Self::FM1.bits | Self::FM0.bits;
+    const FTH = Self::FTH4.bits | Self::FTH3.bits | Self::FTH2.bits | Self::FTH1.bits | Self::FTH0.bits;
   }
+}
+
+impl FifoCtrlRegA {
+    pub const fn with_mode(self, mode: FifoMode) -> Self {
+        match mode {
+            FifoMode::Bypass => self.difference(Self::FM),
+            FifoMode::Fifo => self.difference(Self::FM1).union(Self::FM0),
+            FifoMode::Stream => self.union(Self::FM1).difference(Self::FM0),
+            FifoMode::StreamToFifo => self.union(Self::FM),
+        }
+    }
+
+    pub const fn with_full_threshold(self, n: u8) -> Self {
+        let n = if n > Self::FTH.bits {
+            Self::FTH.bits
+        } else {
+            n
+        };
+        self.difference(Self::FTH)
+            .union(Self::from_bits_truncate(n))
+    }
 }
 
 register! {

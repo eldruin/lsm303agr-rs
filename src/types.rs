@@ -588,3 +588,16 @@ impl Temperature {
         (self.unscaled() as f32) / 256.0 + Self::DEFAULT
     }
 }
+
+/// A FIFO mode.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FifoMode {
+    /// Bypass mode
+    Bypass,
+    /// FIFO mode
+    Fifo,
+    /// Stream mode
+    Stream,
+    /// Stream-to-FIFO mode
+    StreamToFifo,
+}

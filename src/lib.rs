@@ -125,11 +125,13 @@ mod magnetometer;
 mod types;
 pub use crate::types::{
     mode, AccelMode, AccelOutputDataRate, AccelScale, Acceleration, AccelerometerId, Error,
-    MagOutputDataRate, MagneticField, MagnetometerId, ModeChangeError, Status, Temperature,
-    TemperatureStatus,
+    FifoMode, MagOutputDataRate, MagneticField, MagnetometerId, ModeChangeError, Status,
+    Temperature, TemperatureStatus,
 };
 mod register_address;
-use crate::register_address::{CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg4A, TempCfgRegA};
+use crate::register_address::{
+    CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg4A, CtrlReg5A, FifoCtrlRegA, TempCfgRegA,
+};
 
 /// LSM303AGR device driver
 #[derive(Debug)]
@@ -138,10 +140,12 @@ pub struct Lsm303agr<DI, MODE> {
     iface: DI,
     ctrl_reg1_a: CtrlReg1A,
     ctrl_reg4_a: CtrlReg4A,
+    ctrl_reg5_a: CtrlReg5A,
     cfg_reg_a_m: CfgRegAM,
     cfg_reg_b_m: CfgRegBM,
     cfg_reg_c_m: CfgRegCM,
     temp_cfg_reg_a: TempCfgRegA,
+    fifo_ctrl_reg_a: FifoCtrlRegA,
     accel_odr: Option<AccelOutputDataRate>,
     _mag_mode: PhantomData<MODE>,
 }

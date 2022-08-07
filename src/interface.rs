@@ -114,33 +114,27 @@ where
     type Error = Error<E, ()>;
 
     fn read_accel_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
-        Ok(R::from_data(self.read_register(ACCEL_ADDR, R::ADDR)?))
+        self.read_register::<R>(ACCEL_ADDR)
     }
 
     fn read_mag_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
-        Ok(R::from_data(self.read_register(MAG_ADDR, R::ADDR)?))
+        self.read_register::<R>(MAG_ADDR)
     }
 
     fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error> {
-        Ok(R::from_data(
-            self.read_double_register(ACCEL_ADDR, R::ADDR)?,
-        ))
+        self.read_double_register::<R>(ACCEL_ADDR)
     }
 
     fn read_accel_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
     ) -> Result<R::Output, Self::Error> {
-        Ok(R::from_data(
-            self.read_3_double_registers(ACCEL_ADDR, R::ADDR)?,
-        ))
+        self.read_3_double_registers::<R>(ACCEL_ADDR)
     }
 
     fn read_mag_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
     ) -> Result<R::Output, Self::Error> {
-        Ok(R::from_data(
-            self.read_3_double_registers(MAG_ADDR, R::ADDR)?,
-        ))
+        self.read_3_double_registers::<R>(MAG_ADDR)
     }
 }
 
@@ -148,37 +142,41 @@ impl<I2C, E> I2cInterface<I2C>
 where
     I2C: i2c::WriteRead<Error = E>,
 {
-    fn read_register(&mut self, address: u8, register: u8) -> Result<u8, Error<E, ()>> {
+    fn read_register<R: RegRead>(&mut self, address: u8) -> Result<R::Output, Error<E, ()>> {
         let mut data = [0];
         self.i2c
-            .write_read(address, &[register], &mut data)
-            .map_err(Error::Comm)
-            .and(Ok(data[0]))
-    }
-
-    fn read_double_register(&mut self, address: u8, register: u8) -> Result<u16, Error<E, ()>> {
-        let mut data = [0; 2];
-        self.i2c
-            .write_read(address, &[register | 0x80], &mut data)
+            .write_read(address, &[R::ADDR], &mut data)
             .map_err(Error::Comm)?;
 
-        Ok(u16::from(data[0]) | (u16::from(data[1]) << 8))
+        Ok(R::from_data(data[0]))
     }
 
-    fn read_3_double_registers(
+    fn read_double_register<R: RegRead<u16>>(
         &mut self,
         address: u8,
-        start: u8,
-    ) -> Result<(u16, u16, u16), Error<E, ()>> {
+    ) -> Result<R::Output, Error<E, ()>> {
+        let mut data = [0; 2];
+        self.i2c
+            .write_read(address, &[R::ADDR | 0x80], &mut data)
+            .map_err(Error::Comm)?;
+
+        Ok(R::from_data(u16::from_le_bytes(data)))
+    }
+
+    fn read_3_double_registers<R: RegRead<(u16, u16, u16)>>(
+        &mut self,
+        address: u8,
+    ) -> Result<R::Output, Error<E, ()>> {
         let mut data = [0; 6];
         self.i2c
-            .write_read(address, &[start | 0x80], &mut data)
+            .write_read(address, &[R::ADDR | 0x80], &mut data)
             .map_err(Error::Comm)?;
-        Ok((
-            u16::from(data[0]) | (u16::from(data[1]) << 8),
-            u16::from(data[2]) | (u16::from(data[3]) << 8),
-            u16::from(data[4]) | (u16::from(data[5]) << 8),
-        ))
+
+        Ok(R::from_data((
+            u16::from_le_bytes([data[0], data[1]]),
+            u16::from_le_bytes([data[2], data[3]]),
+            u16::from_le_bytes([data[4], data[5]]),
+        )))
     }
 }
 
@@ -192,41 +190,41 @@ where
 
     fn read_accel_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
         self.cs_xl.set_low().map_err(Error::Pin)?;
-        let result = self.read_register(R::ADDR);
+        let result = self.read_register::<R>();
         self.cs_xl.set_high().map_err(Error::Pin)?;
-        Ok(R::from_data(result?))
+        result
     }
 
     fn read_mag_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
         self.cs_mag.set_low().map_err(Error::Pin)?;
-        let result = self.read_register(R::ADDR);
+        let result = self.read_register::<R>();
         self.cs_mag.set_high().map_err(Error::Pin)?;
-        Ok(R::from_data(result?))
+        result
     }
 
     fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error> {
         self.cs_xl.set_low().map_err(Error::Pin)?;
-        let result = self.read_double_register(R::ADDR);
+        let result = self.read_double_register::<R>();
         self.cs_xl.set_high().map_err(Error::Pin)?;
-        Ok(R::from_data(result?))
+        result
     }
 
     fn read_accel_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
     ) -> Result<R::Output, Self::Error> {
         self.cs_xl.set_low().map_err(Error::Pin)?;
-        let result = self.read_3_double_registers(R::ADDR);
+        let result = self.read_3_double_registers::<R>();
         self.cs_xl.set_high().map_err(Error::Pin)?;
-        Ok(R::from_data(result?))
+        result
     }
 
     fn read_mag_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
     ) -> Result<R::Output, Self::Error> {
         self.cs_mag.set_low().map_err(Error::Pin)?;
-        let result = self.read_3_double_registers(R::ADDR);
+        let result = self.read_3_double_registers::<R>();
         self.cs_mag.set_high().map_err(Error::Pin)?;
-        Ok(R::from_data(result?))
+        result
     }
 }
 
@@ -239,28 +237,30 @@ where
     const SPI_RW: u8 = 1 << 7;
     const SPI_MS: u8 = 1 << 6;
 
-    fn read_register(&mut self, register: u8) -> Result<u8, Error<CommE, PinE>> {
-        let mut data = [Self::SPI_RW | register, 0];
-        let value = self.spi.transfer(&mut data).map_err(Error::Comm)?;
-        Ok(value[1])
+    fn read_register<R: RegRead>(&mut self) -> Result<R::Output, Error<CommE, PinE>> {
+        let mut data = [Self::SPI_RW | R::ADDR, 0];
+        self.spi.transfer(&mut data).map_err(Error::Comm)?;
+
+        Ok(R::from_data(data[1]))
     }
 
-    fn read_double_register(&mut self, register: u8) -> Result<u16, Error<CommE, PinE>> {
-        let mut data = [Self::SPI_RW | Self::SPI_MS | register, 0, 0];
-        let value = self.spi.transfer(&mut data).map_err(Error::Comm)?;
-        Ok(u16::from(value[1]) | (u16::from(value[2]) << 8))
+    fn read_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Error<CommE, PinE>> {
+        let mut data = [Self::SPI_RW | Self::SPI_MS | R::ADDR, 0, 0];
+        self.spi.transfer(&mut data).map_err(Error::Comm)?;
+
+        Ok(R::from_data(u16::from_le_bytes([data[1], data[2]])))
     }
 
-    fn read_3_double_registers(
+    fn read_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
-        register: u8,
-    ) -> Result<(u16, u16, u16), Error<CommE, PinE>> {
-        let mut data = [Self::SPI_RW | Self::SPI_MS | register, 0, 0, 0, 0, 0, 0];
-        let value = self.spi.transfer(&mut data).map_err(Error::Comm)?;
-        Ok((
-            u16::from(value[1]) | (u16::from(value[2]) << 8),
-            u16::from(value[3]) | (u16::from(value[4]) << 8),
-            u16::from(value[5]) | (u16::from(value[6]) << 8),
-        ))
+    ) -> Result<R::Output, Error<CommE, PinE>> {
+        let mut data = [Self::SPI_RW | Self::SPI_MS | R::ADDR, 0, 0, 0, 0, 0, 0];
+        self.spi.transfer(&mut data).map_err(Error::Comm)?;
+
+        Ok(R::from_data((
+            u16::from_le_bytes([data[1], data[2]]),
+            u16::from_le_bytes([data[3], data[4]]),
+            u16::from_le_bytes([data[5], data[6]]),
+        )))
     }
 }
