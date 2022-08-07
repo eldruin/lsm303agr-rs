@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 - Support temperature sensor.
-- Support magnetometer offset cancellation
+- Support magnetometer offset cancellation.
+- Reduce size of status structs.
 
-...
 ## [0.2.2] - 2021-09-21
 
 ### Fixed
