@@ -64,31 +64,42 @@ where
 {
     /// Initialize registers
     pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
+        self.acc_enable_temp()?; // Also enables BDU.
+        self.mag_enable_bdu()?;
+
+        Ok(())
+    }
+
+    /// Enable block data update for accelerometer.
+    fn acc_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
         let reg4 = self.ctrl_reg4_a.with_high(BF::ACCEL_BDU);
         self.iface
             .write_accel_register(Register::CTRL_REG4_A, reg4.bits)?;
         self.ctrl_reg4_a = reg4;
-
-        let regc = self.cfg_reg_c_m.with_high(BF::MAG_BDU);
-        self.iface
-            .write_mag_register(Register::CFG_REG_C_M, regc.bits)?;
-        self.cfg_reg_c_m = regc;
 
         Ok(())
     }
 
     /// Enable the temperature sensor.
     #[inline]
-    fn enable_temperature_sensor(&mut self) -> Result<(), Error<CommE, PinE>> {
-        if self.temp_cfg_reg_a.is_high(BF::TEMP_EN) {
-            // Already enabled.
-            return Ok(());
-        }
+    fn acc_enable_temp(&mut self) -> Result<(), Error<CommE, PinE>> {
+        self.acc_enable_bdu()?;
 
         let temp_cfg_reg = self.temp_cfg_reg_a.with_high(BF::TEMP_EN);
         self.iface
             .write_accel_register(Register::TEMP_CFG_REG_A, temp_cfg_reg.bits)?;
         self.temp_cfg_reg_a = temp_cfg_reg;
+
+        Ok(())
+    }
+
+    /// Enable block data update for magnetometer.
+    #[inline]
+    fn mag_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
+        let regc = self.cfg_reg_c_m.with_high(BF::MAG_BDU);
+        self.iface
+            .write_mag_register(Register::CFG_REG_C_M, regc.bits)?;
+        self.cfg_reg_c_m = regc;
 
         Ok(())
     }
@@ -153,8 +164,6 @@ where
 
     /// Temperature sensor status
     pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
-        self.enable_temperature_sensor()?;
-
         self.iface
             .read_accel_register(Register::STATUS_REG_AUX_A)
             .map(TemperatureStatus::new)

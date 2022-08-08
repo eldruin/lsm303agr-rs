@@ -154,13 +154,15 @@ impl Config {
             bits: self.bits | mask,
         }
     }
+
     fn with_low(self, mask: u8) -> Self {
         Config {
             bits: self.bits & !mask,
         }
     }
+
     fn is_high(self, mask: u8) -> bool {
-        (self.bits & mask) == mask
+        (self.bits & mask) != 0
     }
 }
 
