@@ -140,7 +140,53 @@ macro_rules! measurement_almost_eq {
 }
 
 #[test]
-fn can_get_10_bit_data() {
+fn can_get_8_bit_data_i2c() {
+    let mut sensor = new_i2c(&[
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
+        ),
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![
+                Register::CTRL_REG1_A,
+                BF::LP_EN | DEFAULT_CTRL_REG1_A | HZ50,
+            ],
+        ),
+        I2cTrans::write_read(
+            ACCEL_ADDR,
+            vec![Register::OUT_X_L_A | 0x80],
+            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+        ),
+    ]);
+    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
+    sensor.set_accel_mode(AccelMode::LowPower).unwrap();
+    let data = sensor.acceleration().unwrap();
+
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
+    assert_eq!(data.x_unscaled(), 0x2010 / (1 << 8));
+    assert_eq!(data.y_unscaled(), 0x4030 / (1 << 8));
+    assert_eq!(data.z_unscaled(), 0x6050 / (1 << 8));
+
+    // At 2g scale and 8 bit resolution there is 16 milli-g per
+    // significant digit so we expect the result to be within 16
+    // of the true result.
+    measurement_almost_eq!(
+        data,
+        0x2010 / (1 << 4),
+        0x4030 / (1 << 4),
+        0x6050 / (1 << 4),
+        16
+    );
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_get_10_bit_data_i2c() {
     let mut sensor = new_i2c(&[
         I2cTrans::write(
             ACCEL_ADDR,
@@ -154,6 +200,15 @@ fn can_get_10_bit_data() {
     ]);
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
     let data = sensor.acceleration().unwrap();
+
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
+    assert_eq!(data.x_unscaled(), 0x2010 / (1 << 6));
+    assert_eq!(data.y_unscaled(), 0x4030 / (1 << 6));
+    assert_eq!(data.z_unscaled(), 0x6050 / (1 << 6));
+
     // at 2g scale and 10 bit resolution there is 4 milli-g per
     // significant digit so we expect the result to be within 4
     // of the true result
@@ -164,27 +219,7 @@ fn can_get_10_bit_data() {
         0x6050 / (1 << 4),
         4
     );
-    destroy_i2c(sensor);
-}
 
-#[test]
-fn can_get_10_bit_unscaled_data() {
-    let mut sensor = new_i2c(&[
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
-        ),
-        I2cTrans::write_read(
-            ACCEL_ADDR,
-            vec![Register::OUT_X_L_A | 0x80],
-            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
-        ),
-    ]);
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    let data = sensor.acceleration().unwrap();
-    assert_eq!(data.x_unscaled(), 0x2010 / (1 << 6));
-    assert_eq!(data.y_unscaled(), 0x4030 / (1 << 6));
-    assert_eq!(data.z_unscaled(), 0x6050 / (1 << 6));
     destroy_i2c(sensor);
 }
 
@@ -210,8 +245,17 @@ fn can_get_10_bit_data_spi() {
     );
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
     let data = sensor.acceleration().unwrap();
-    // at 2g scale there is 4 milli-g per significant digit
-    // so we expect the result to be within 4 of the true result
+
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
+    assert_eq!(data.x_unscaled(), 0x2010 / (1 << 6));
+    assert_eq!(data.y_unscaled(), 0x4030 / (1 << 6));
+    assert_eq!(data.z_unscaled(), 0x6050 / (1 << 6));
+
+    // At 2g scale there is 4 milli-g per significant digit
+    // so we expect the result to be within 4 of the true result.
     measurement_almost_eq!(
         data,
         0x2010 / (1 << 4),
@@ -223,7 +267,7 @@ fn can_get_10_bit_data_spi() {
 }
 
 #[test]
-fn can_get_12_bit_data() {
+fn can_get_12_bit_data_i2c() {
     let mut sensor = new_i2c(&[
         I2cTrans::write(
             ACCEL_ADDR,
@@ -243,48 +287,21 @@ fn can_get_12_bit_data() {
     sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
     sensor.set_accel_mode(AccelMode::HighResolution).unwrap();
     let data = sensor.acceleration().unwrap();
-    // at 2g scale and 12 bit resolution there is 1 milli-g per
+
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
+    // At 2g scale and 12 bit resolution there is 1 milli-g per
     // significant digit so we expect the result to be exactly
-    // equal to the true result
+    // equal to the true result.
+    assert_eq!(data.x_unscaled(), 0x2010 / (1 << 4));
+    assert_eq!(data.y_unscaled(), 0x4030 / (1 << 4));
+    assert_eq!(data.z_unscaled(), 0x6050 / (1 << 4));
+
     assert_eq!(data.x_mg(), 0x2010 / (1 << 4));
     assert_eq!(data.y_mg(), 0x4030 / (1 << 4));
     assert_eq!(data.z_mg(), 0x6050 / (1 << 4));
-    destroy_i2c(sensor);
-}
 
-#[test]
-fn can_get_8_bit_data() {
-    let mut sensor = new_i2c(&[
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
-        ),
-        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![
-                Register::CTRL_REG1_A,
-                BF::LP_EN | DEFAULT_CTRL_REG1_A | HZ50,
-            ],
-        ),
-        I2cTrans::write_read(
-            ACCEL_ADDR,
-            vec![Register::OUT_X_L_A | 0x80],
-            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
-        ),
-    ]);
-    sensor.set_accel_odr(AccelOutputDataRate::Hz50).unwrap();
-    sensor.set_accel_mode(AccelMode::LowPower).unwrap();
-    let data = sensor.acceleration().unwrap();
-    // at 2g scale and 8 bit resolution there is 16 milli-g per
-    // significant digit so we expect the result to be within 16
-    // of the true result
-    measurement_almost_eq!(
-        data,
-        0x2010 / (1 << 4),
-        0x4030 / (1 << 4),
-        0x6050 / (1 << 4),
-        16
-    );
     destroy_i2c(sensor);
 }
