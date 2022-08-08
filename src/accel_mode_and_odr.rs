@@ -14,6 +14,8 @@ where
     /// This changes the power mode if the current one is not appropriate.
     /// When changing from a low-power-only output data rate setting into
     /// a high-resolution or normal power mode, it changes into normal mode.
+    ///
+    #[doc = include_str!("delay.md")]
     pub fn set_accel_odr<D: DelayUs<u32>>(
         &mut self,
         delay: &mut D,
@@ -69,6 +71,8 @@ where
     ///
     /// Returns `Error::InvalidInputData` if the mode is incompatible with the current
     /// accelerometer output data rate.
+    ///
+    #[doc = include_str!("delay.md")]
     pub fn set_accel_mode<D: DelayUs<u32>>(
         &mut self,
         delay: &mut D,
