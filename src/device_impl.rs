@@ -65,9 +65,7 @@ where
     /// Initialize registers
     pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
         self.acc_enable_temp()?; // Also enables BDU.
-        self.mag_enable_bdu()?;
-
-        Ok(())
+        self.mag_enable_bdu()
     }
 
     /// Enable block data update for accelerometer.
