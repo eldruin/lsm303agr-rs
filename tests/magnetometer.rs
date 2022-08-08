@@ -29,7 +29,7 @@ set_mag_odr!(set_mag_odr_hz50, Hz50, 2 << 2);
 set_mag_odr!(set_mag_odr_hz100, Hz100, 3 << 2);
 
 #[test]
-fn can_take_one_shot_measurement() {
+fn can_take_one_shot_measurement_i2c() {
     let mut sensor = new_i2c(&[
         I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0]),
         I2cTrans::write_read(MAG_ADDR, vec![Register::CFG_REG_A_M], vec![0]), // idle
@@ -44,36 +44,24 @@ fn can_take_one_shot_measurement() {
         ),
     ]);
     let data = nb::block!(sensor.magnetic_field()).unwrap();
-    assert_eq!(data.x_nt(), 0x2010 * 150);
-    assert_eq!(data.y_nt(), 0x4030 * 150);
-    assert_eq!(data.z_nt(), 0x6050 * 150);
-    destroy_i2c(sensor);
-}
 
-#[test]
-fn can_take_one_shot_unscaled_measurement() {
-    let mut sensor = new_i2c(&[
-        I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0]),
-        I2cTrans::write_read(MAG_ADDR, vec![Register::CFG_REG_A_M], vec![0]), // idle
-        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 1]),            // start measurement
-        I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0]),
-        I2cTrans::write_read(MAG_ADDR, vec![Register::CFG_REG_A_M], vec![1]), // continue waiting
-        I2cTrans::write_read(MAG_ADDR, vec![Register::STATUS_REG_M], vec![0xFF]),
-        I2cTrans::write_read(
-            MAG_ADDR,
-            vec![Register::OUTX_L_REG_M | 0x80],
-            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
-        ),
-    ]);
-    let data = nb::block!(sensor.magnetic_field()).unwrap();
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
     assert_eq!(data.x_unscaled(), 0x2010);
     assert_eq!(data.y_unscaled(), 0x4030);
     assert_eq!(data.z_unscaled(), 0x6050);
+
+    assert_eq!(data.x_nt(), 0x2010 * 150);
+    assert_eq!(data.y_nt(), 0x4030 * 150);
+    assert_eq!(data.z_nt(), 0x6050 * 150);
+
     destroy_i2c(sensor);
 }
 
 #[test]
-fn can_take_continuous_measurement() {
+fn can_take_continuous_measurement_i2c() {
     let sensor = new_i2c(&[
         I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 0]),
         I2cTrans::write_read(
@@ -84,27 +72,19 @@ fn can_take_continuous_measurement() {
     ]);
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
     let data = sensor.magnetic_field().unwrap();
-    assert_eq!(data.x_nt(), 0x2010 * 150);
-    assert_eq!(data.y_nt(), 0x4030 * 150);
-    assert_eq!(data.z_nt(), 0x6050 * 150);
-    destroy_i2c(sensor);
-}
 
-#[test]
-fn can_take_continuous_unscaled_measurement() {
-    let sensor = new_i2c(&[
-        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_A_M, 0]),
-        I2cTrans::write_read(
-            MAG_ADDR,
-            vec![Register::OUTX_L_REG_M | 0x80],
-            vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
-        ),
-    ]);
-    let mut sensor = sensor.into_mag_continuous().ok().unwrap();
-    let data = sensor.magnetic_field().unwrap();
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
     assert_eq!(data.x_unscaled(), 0x2010);
     assert_eq!(data.y_unscaled(), 0x4030);
     assert_eq!(data.z_unscaled(), 0x6050);
+
+    assert_eq!(data.x_nt(), 0x2010 * 150);
+    assert_eq!(data.y_nt(), 0x4030 * 150);
+    assert_eq!(data.z_nt(), 0x6050 * 150);
+
     destroy_i2c(sensor);
 }
 
@@ -135,9 +115,19 @@ fn can_take_continuous_measurement_spi() {
     );
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
     let data = sensor.magnetic_field().unwrap();
+
+    assert_eq!(data.x_raw(), 0x2010);
+    assert_eq!(data.y_raw(), 0x4030);
+    assert_eq!(data.z_raw(), 0x6050);
+
+    assert_eq!(data.x_unscaled(), 0x2010);
+    assert_eq!(data.y_unscaled(), 0x4030);
+    assert_eq!(data.z_unscaled(), 0x6050);
+
     assert_eq!(data.x_nt(), 0x2010 * 150);
     assert_eq!(data.y_nt(), 0x4030 * 150);
     assert_eq!(data.z_nt(), 0x6050 * 150);
+
     destroy_spi(sensor);
 }
 
