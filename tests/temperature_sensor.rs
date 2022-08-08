@@ -8,13 +8,11 @@ use lsm303agr::AccelOutputDataRate;
 
 #[test]
 fn can_read_temperature_has_new_data() {
-    let mut sensor = new_i2c(&[
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::TEMP_CFG_REG_A, BF::TEMP_EN0 | BF::TEMP_EN1],
-        ),
-        I2cTrans::write_read(ACCEL_ADDR, vec![Register::STATUS_REG_AUX_A], vec![BF::TDA]),
-    ]);
+    let mut sensor = new_i2c(&[I2cTrans::write_read(
+        ACCEL_ADDR,
+        vec![Register::STATUS_REG_AUX_A],
+        vec![BF::TDA],
+    )]);
 
     assert!(sensor.temperature_status().unwrap().new_data());
     destroy_i2c(sensor);
@@ -22,13 +20,11 @@ fn can_read_temperature_has_new_data() {
 
 #[test]
 fn can_read_temperature_has_data_overrun() {
-    let mut sensor = new_i2c(&[
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::TEMP_CFG_REG_A, BF::TEMP_EN0 | BF::TEMP_EN1],
-        ),
-        I2cTrans::write_read(ACCEL_ADDR, vec![Register::STATUS_REG_AUX_A], vec![BF::TOR]),
-    ]);
+    let mut sensor = new_i2c(&[I2cTrans::write_read(
+        ACCEL_ADDR,
+        vec![Register::STATUS_REG_AUX_A],
+        vec![BF::TOR],
+    )]);
 
     assert!(sensor.temperature_status().unwrap().overrun());
     destroy_i2c(sensor);
@@ -36,13 +32,11 @@ fn can_read_temperature_has_data_overrun() {
 
 #[test]
 fn can_read_temperature_has_no_new_data() {
-    let mut sensor = new_i2c(&[
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::TEMP_CFG_REG_A, BF::TEMP_EN0 | BF::TEMP_EN1],
-        ),
-        I2cTrans::write_read(ACCEL_ADDR, vec![Register::STATUS_REG_AUX_A], vec![0x00]),
-    ]);
+    let mut sensor = new_i2c(&[I2cTrans::write_read(
+        ACCEL_ADDR,
+        vec![Register::STATUS_REG_AUX_A],
+        vec![0x00],
+    )]);
 
     assert!(!sensor.temperature_status().unwrap().new_data());
     destroy_i2c(sensor);
