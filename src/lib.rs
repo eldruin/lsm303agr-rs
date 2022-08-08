@@ -5,24 +5,21 @@
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
 //! This driver allows you to:
-//! - Connect through I2C or SPI. See: [`new_with_i2c()`](Lsm303agr::new_with_i2c).
+//! - Connect through I2C or SPI. See: [`new_with_i2c()`](Lsm303agr::new_with_i2c) and [`new_with_spi()`](Lsm303agr::new_with_spi) .
 //! - Initialize the device. See: [`init()`](Lsm303agr::init).
 //! - Accelerometer:
-//!     - Read accelerometer data. See: [`accel_data()`](Lsm303agr::accel_data).
-//!     - Read accelerometer data unscaled. See: [`accel_data()`](Lsm303agr::accel_data_unscaled).
+//!     - Read measured acceleration. See: [`acceleration()`](Lsm303agr::acceleration).
 //!     - Get accelerometer status. See: [`accel_status()`](Lsm303agr::accel_status).
 //!     - Set accelerometer output data rate. See: [`set_accel_odr()`](Lsm303agr::set_accel_odr).
 //!     - Set accelerometer mode. See: [`set_accel_mode()`](Lsm303agr::set_accel_mode).
 //!     - Set accelerometer scale. See: [`set_accel_scale()`](Lsm303agr::set_accel_scale).
 //!     - Get accelerometer ID. See: [`accelerometer_id()`](Lsm303agr::accelerometer_id).
 //!     - Get temperature sensor status. See: [`temperature_status()`](Lsm303agr::temperature_status).
-//!     - Get temperature sensor data. See: [`temperature_data()`](Lsm303agr::temperature_data).
-//!     - Get temperature sensor data in celsius. See: [`temperature_celsius()`](Lsm303agr::temperature_celsius).
+//!     - Read measured temperature. See: [`temperature()`](Lsm303agr::temperature).
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`](Lsm303agr::mag_status).
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`](Lsm303agr::into_mag_continuous).
-//!     - Read magnetometer data. See: [`mag_data()`](Lsm303agr::mag_data).
-//!     - Read magnetometer data unscaled. See: [`mag_data()`](Lsm303agr::mag_data_unscaled).
+//!     - Read measured magnetic field. See: [`magnetic_field()`](Lsm303agr::magnetic_field).
 //!     - Set magnetometer output data rate. See: [`set_mag_odr()`](Lsm303agr::set_mag_odr).
 //!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
 //!     - Enable/disable magnetometer built in offset cancellation. See: [`enable_mag_offset_cancellation()`](Lsm303agr::enable_mag_offset_cancellation).
