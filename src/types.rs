@@ -556,3 +556,37 @@ impl Temperature {
         (self.unscaled() as f32) / 256.0 + Self::DEFAULT
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn acc_odr_from_hz() {
+        assert_eq!(AccelOutputDataRate::from_hertz(0), None);
+        assert_eq!(
+            AccelOutputDataRate::from_hertz(100),
+            Some(AccelOutputDataRate::Hz100)
+        );
+        assert_eq!(AccelOutputDataRate::from_hertz(3333), None);
+        assert_eq!(
+            AccelOutputDataRate::from_hertz(5376),
+            Some(AccelOutputDataRate::Khz5_376LowPower)
+        );
+    }
+
+    #[test]
+    fn mag_odr_from_hz() {
+        assert_eq!(MagOutputDataRate::from_hertz(0), None);
+        assert_eq!(
+            MagOutputDataRate::from_hertz(20),
+            Some(MagOutputDataRate::Hz20)
+        );
+        assert_eq!(MagOutputDataRate::from_hertz(33), None);
+        assert_eq!(
+            MagOutputDataRate::from_hertz(50),
+            Some(MagOutputDataRate::Hz50)
+        );
+        assert_eq!(MagOutputDataRate::from_hertz(333), None);
+    }
+}
