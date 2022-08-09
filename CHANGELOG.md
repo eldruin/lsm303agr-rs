@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support magnetometer offset cancellation.
 - [breaking-change] Reduce size of status structs.
 - [breaking-change] Simplify API by using explicit types for each measurement.
-- Minimum supported Rust version has been upgraded to 1.46.0
+- Minimum supported Rust version has been upgraded to 1.54.0.
 - Pass delay into functions to handle turn-on times.
 
 ## [0.2.2] - 2021-09-21
