@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Minimum supported Rust version has been upgraded to 1.54.0.
 - Pass delay into functions to handle turn-on times.
 - Add explicit types for accelerometer and magnetometer IDs.
+- Allow getting `AccelOutputDataRate` and `MagOutputDataRate` from Hertz.
 
 ## [0.2.2] - 2021-09-21
 
