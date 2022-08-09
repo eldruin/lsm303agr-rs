@@ -406,6 +406,19 @@ pub enum MagOutputDataRate {
     Hz100,
 }
 
+impl MagOutputDataRate {
+    /// Create an `MagOutputDataRate` with the given frequency in Hertz.
+    pub const fn from_hertz(hz: u16) -> Option<Self> {
+        Some(match hz {
+            10 => Self::Hz10,
+            20 => Self::Hz20,
+            50 => Self::Hz50,
+            100 => Self::Hz100,
+            _ => return None,
+        })
+    }
+}
+
 bitflags! {
     #[derive(Default)]
     struct StatusFlags: u8 {
