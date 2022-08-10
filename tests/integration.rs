@@ -68,7 +68,7 @@ fn i2c_mag_id_is_not_correct() {
 }
 
 #[test]
-fn i2c_mag_id_is_whoami() {
+fn i2c_mag_id_is_correct() {
     let mag_id = 0x40;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         MAG_ADDR,
