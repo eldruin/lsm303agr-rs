@@ -36,7 +36,7 @@ fn i2c_acc_id_is_not_correct() {
 }
 
 #[test]
-fn i2c_acc_id_is_whoami() {
+fn i2c_acc_id_is_correct() {
     let acc_id = 0x33;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         ACCEL_ADDR,
