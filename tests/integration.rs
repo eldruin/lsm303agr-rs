@@ -20,32 +20,39 @@ fn can_create_and_destroy_spi() {
 }
 
 #[test]
-fn i2c_can_get_accel_id() {
-    let accel_id = 0xAB;
+fn i2c_acc_id_is_not_correct() {
+    let acc_id = 0xAB;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         ACCEL_ADDR,
         vec![Register::WHO_AM_I_A],
-        vec![accel_id],
+        vec![acc_id],
     )]);
     let id = sensor.accelerometer_id().unwrap();
-    assert_eq!(accel_id, id);
+
+    assert_eq!(id.raw(), acc_id);
+    assert!(!id.is_correct());
+
     destroy_i2c(sensor);
 }
 
 #[test]
-fn i2c_accelerometer_is_detected() {
-    let accel_id = 0x33;
+fn i2c_acc_id_is_correct() {
+    let acc_id = 0x33;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         ACCEL_ADDR,
         vec![Register::WHO_AM_I_A],
-        vec![accel_id],
+        vec![acc_id],
     )]);
-    assert!(sensor.accelerometer_is_detected().unwrap());
+    let id = sensor.accelerometer_id().unwrap();
+
+    assert_eq!(id.raw(), acc_id);
+    assert!(id.is_correct());
+
     destroy_i2c(sensor);
 }
 
 #[test]
-fn i2c_can_get_mag_id() {
+fn i2c_mag_id_is_not_correct() {
     let mag_id = 0xAB;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         MAG_ADDR,
@@ -53,53 +60,67 @@ fn i2c_can_get_mag_id() {
         vec![mag_id],
     )]);
     let id = sensor.magnetometer_id().unwrap();
-    assert_eq!(mag_id, id);
+
+    assert_eq!(id.raw(), mag_id);
+    assert!(!id.is_correct());
+
     destroy_i2c(sensor);
 }
 
 #[test]
-fn i2c_magnetometer_is_detected() {
+fn i2c_mag_id_is_correct() {
     let mag_id = 0x40;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         MAG_ADDR,
         vec![Register::WHO_AM_I_M],
         vec![mag_id],
     )]);
-    assert!(sensor.magnetometer_is_detected().unwrap());
+    let id = sensor.magnetometer_id().unwrap();
+
+    assert_eq!(id.raw(), mag_id);
+    assert!(id.is_correct());
+
     destroy_i2c(sensor);
 }
 
 #[test]
-fn spi_can_get_accel_id() {
-    let accel_id = 0xAB;
+fn spi_acc_id_is_not_correct() {
+    let acc_id = 0xAB;
     let mut sensor = new_spi_accel(
         &[SpiTrans::transfer(
             vec![BF::SPI_RW | Register::WHO_AM_I_A, 0],
-            vec![0, accel_id],
+            vec![0, acc_id],
         )],
         default_cs(),
     );
     let id = sensor.accelerometer_id().unwrap();
-    assert_eq!(accel_id, id);
+
+    assert_eq!(id.raw(), acc_id);
+    assert!(!id.is_correct());
+
     destroy_spi(sensor);
 }
 
 #[test]
-fn spi_accelerometer_is_detected() {
-    let accel_id = 0x33;
+fn spi_acc_id_is_correct() {
+    let acc_id = 0x33;
     let mut sensor = new_spi_accel(
         &[SpiTrans::transfer(
             vec![BF::SPI_RW | Register::WHO_AM_I_A, 0],
-            vec![0, accel_id],
+            vec![0, acc_id],
         )],
         default_cs(),
     );
-    assert!(sensor.accelerometer_is_detected().unwrap());
+    let id = sensor.accelerometer_id().unwrap();
+
+    assert_eq!(id.raw(), acc_id);
+    assert!(id.is_correct());
+
     destroy_spi(sensor);
 }
 
 #[test]
-fn spi_can_get_mag_id() {
+fn spi_mag_id_is_not_correct() {
     let mag_id = 0xAB;
     let mut sensor = new_spi_mag(
         &[SpiTrans::transfer(
@@ -109,12 +130,15 @@ fn spi_can_get_mag_id() {
         default_cs(),
     );
     let id = sensor.magnetometer_id().unwrap();
-    assert_eq!(mag_id, id);
+
+    assert_eq!(id.raw(), mag_id);
+    assert!(!id.is_correct());
+
     destroy_spi(sensor);
 }
 
 #[test]
-fn spi_magnetometer_is_detected() {
+fn spi_mag_id_is_correct() {
     let mag_id = 0x40;
     let mut sensor = new_spi_mag(
         &[SpiTrans::transfer(
@@ -123,7 +147,11 @@ fn spi_magnetometer_is_detected() {
         )],
         default_cs(),
     );
-    assert!(sensor.magnetometer_is_detected().unwrap());
+    let id = sensor.magnetometer_id().unwrap();
+
+    assert_eq!(id.raw(), mag_id);
+    assert!(id.is_correct());
+
     destroy_spi(sensor);
 }
 

@@ -1,5 +1,7 @@
 use bitflags::bitflags;
 
+use crate::register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL};
+
 /// All possible errors in this crate
 #[derive(Debug)]
 pub enum Error<CommE, PinE> {
@@ -28,6 +30,24 @@ pub mod mode {
     /// Marker type for magnetometer in continuous mode.
     #[derive(Debug)]
     pub enum MagContinuous {}
+}
+
+/// An Accelerometer ID.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct AccelerometerId {
+    pub(crate) raw: u8,
+}
+
+impl AccelerometerId {
+    /// Raw accelerometer ID.
+    pub const fn raw(&self) -> u8 {
+        self.raw
+    }
+
+    /// Check if the ID corresponds to the expected value.
+    pub const fn is_correct(&self) -> bool {
+        self.raw == WHO_AM_I_A_VAL
+    }
 }
 
 /// An acceleration measurement.
@@ -124,6 +144,24 @@ impl Acceleration {
             (y_unscaled as i32) * scaling_factor,
             (z_unscaled as i32) * scaling_factor,
         )
+    }
+}
+
+/// A Magnetometer ID.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MagnetometerId {
+    pub(crate) raw: u8,
+}
+
+impl MagnetometerId {
+    /// Raw magnetometer ID.
+    pub const fn raw(&self) -> u8 {
+        self.raw
+    }
+
+    /// Check if the ID corresponds to the expected value.
+    pub const fn is_correct(&self) -> bool {
+        self.raw == WHO_AM_I_M_VAL
     }
 }
 
