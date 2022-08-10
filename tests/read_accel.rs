@@ -143,6 +143,12 @@ macro_rules! measurement_almost_eq {
     }};
 }
 
+macro_rules! assert_eq_xyz_mg {
+    ($data:expr) => {{
+        crate::assert_eq_xyz!($data, x_mg, y_mg, z_mg, xyz_mg);
+    }};
+}
+
 #[test]
 fn can_get_8_bit_data_i2c() {
     let mut sensor = new_i2c(&[
@@ -171,6 +177,8 @@ fn can_get_8_bit_data_i2c() {
         .set_accel_mode(&mut Delay, AccelMode::LowPower)
         .unwrap();
     let data = sensor.acceleration().unwrap();
+
+    assert_eq_xyz_mg!(data);
 
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
@@ -210,6 +218,8 @@ fn can_get_10_bit_data_i2c() {
         .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
         .unwrap();
     let data = sensor.acceleration().unwrap();
+
+    assert_eq_xyz_mg!(data);
 
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
@@ -258,6 +268,8 @@ fn can_get_10_bit_data_spi() {
         .unwrap();
     let data = sensor.acceleration().unwrap();
 
+    assert_eq_xyz_mg!(data);
+
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
     assert_eq!(data.z_raw(), 0x6050);
@@ -303,6 +315,8 @@ fn can_get_12_bit_data_i2c() {
         .set_accel_mode(&mut Delay, AccelMode::HighResolution)
         .unwrap();
     let data = sensor.acceleration().unwrap();
+
+    assert_eq_xyz_mg!(data);
 
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
