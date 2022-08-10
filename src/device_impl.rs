@@ -1,6 +1,8 @@
 use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
-    mode, Acceleration, AccelerometerId, BitFlags as BF, Config, Error, Lsm303agr, MagnetometerId,
+    mode,
+    register_address::{RegRead, StatusRegAuxA},
+    Acceleration, AccelerometerId, BitFlags as BF, Config, Error, Lsm303agr, MagnetometerId,
     PhantomData, Register, Status, Temperature, TemperatureStatus,
 };
 
@@ -143,9 +145,7 @@ where
 
     /// Get measured temperature.
     pub fn temperature(&mut self) -> Result<Temperature, Error<CommE, PinE>> {
-        let data = self
-            .iface
-            .read_accel_double_register(Register::OUT_TEMP_L_A)?;
+        let data = self.iface.read_accel_double_register(Temperature::ADDR)?;
 
         Ok(Temperature { raw: data })
     }
@@ -153,7 +153,7 @@ where
     /// Temperature sensor status
     pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
         self.iface
-            .read_accel_register(Register::STATUS_REG_AUX_A)
+            .read_accel_register(StatusRegAuxA::ADDR)
             .map(TemperatureStatus::new)
     }
 }
