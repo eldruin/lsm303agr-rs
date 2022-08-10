@@ -84,7 +84,7 @@ fn i2c_mag_id_is_correct() {
 }
 
 #[test]
-fn spi_acc_id_is_not_whoami() {
+fn spi_acc_id_is_not_correct() {
     let acc_id = 0xAB;
     let mut sensor = new_spi_accel(
         &[SpiTrans::transfer(
