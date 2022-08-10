@@ -30,7 +30,7 @@ fn i2c_acc_id_is_not_correct() {
     let id = sensor.accelerometer_id().unwrap();
 
     assert_eq!(id.raw(), acc_id);
-    assert!(!id.is_whoami());
+    assert!(!id.is_correct());
 
     destroy_i2c(sensor);
 }
@@ -46,7 +46,7 @@ fn i2c_acc_id_is_correct() {
     let id = sensor.accelerometer_id().unwrap();
 
     assert_eq!(id.raw(), acc_id);
-    assert!(id.is_whoami());
+    assert!(id.is_correct());
 
     destroy_i2c(sensor);
 }
