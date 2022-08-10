@@ -62,7 +62,7 @@ fn i2c_mag_id_is_not_correct() {
     let id = sensor.magnetometer_id().unwrap();
 
     assert_eq!(id.raw(), mag_id);
-    assert!(!id.is_whoami());
+    assert!(!id.is_correct());
 
     destroy_i2c(sensor);
 }
