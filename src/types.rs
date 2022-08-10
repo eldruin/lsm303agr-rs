@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::register_address::{WHO_AM_I_A_VAL, WHO_AM_I_M_VAL};
+use crate::register_address::{RegRead, StatusRegAuxA, WHO_AM_I_A_VAL, WHO_AM_I_M_VAL};
 
 /// All possible errors in this crate
 #[derive(Debug)]
@@ -495,37 +495,29 @@ impl Status {
     }
 }
 
-bitflags! {
-    #[derive(Default)]
-    struct TemperatureStatusFlags: u8 {
-        const TDA = 1 << 2;
-        const TOR = 1 << 6;
-    }
-}
-
 /// Temperature sensor status
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct TemperatureStatus {
-    flags: TemperatureStatusFlags,
+    flags: StatusRegAuxA,
 }
 
 impl TemperatureStatus {
     pub(crate) const fn new(flags: u8) -> Self {
         Self {
-            flags: TemperatureStatusFlags::from_bits_truncate(flags),
+            flags: StatusRegAuxA::from_bits_truncate(flags),
         }
     }
 
     /// Temperature data overrun.
     #[inline]
     pub const fn overrun(&self) -> bool {
-        self.flags.contains(TemperatureStatusFlags::TOR)
+        self.flags.contains(StatusRegAuxA::TOR)
     }
 
     /// Temperature new data available.
     #[inline]
     pub const fn new_data(&self) -> bool {
-        self.flags.contains(TemperatureStatusFlags::TDA)
+        self.flags.contains(StatusRegAuxA::TDA)
     }
 }
 
@@ -533,6 +525,18 @@ impl TemperatureStatus {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Temperature {
     pub(crate) raw: u16,
+}
+
+impl RegRead<u16> for Temperature {
+    type Output = Self;
+
+    /// OUT_TEMP_L_A
+    const ADDR: u8 = 0x0C;
+
+    #[inline]
+    fn from_data(data: u16) -> Self::Output {
+        Temperature { raw: data }
+    }
 }
 
 impl Temperature {
