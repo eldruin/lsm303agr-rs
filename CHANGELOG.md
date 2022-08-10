@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [breaking-change] Simplify API by using explicit types for each measurement.
 - Minimum supported Rust version has been upgraded to 1.54.0.
 - Pass delay into functions to handle turn-on times.
-- Add explicit types for `WHO_AM_I` values.
+- Add explicit types for accelerometer and magnetometer IDs.
 
 ## [0.2.2] - 2021-09-21
 
