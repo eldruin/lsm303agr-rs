@@ -133,3 +133,23 @@ pub fn new_i2c(
 pub fn destroy_i2c<MODE>(sensor: Lsm303agr<interface::I2cInterface<I2cMock>, MODE>) {
     sensor.destroy().done();
 }
+
+#[macro_export]
+macro_rules! assert_eq_xyz {
+    ($data:expr, $x_unit:ident, $y_unit:ident, $z_unit:ident, $xyz_unit:ident) => {{
+        let (x_raw, y_raw, z_raw) = $data.xyz_raw();
+        assert_eq!($data.x_raw(), x_raw);
+        assert_eq!($data.y_raw(), y_raw);
+        assert_eq!($data.z_raw(), z_raw);
+
+        let (x_unscaled, y_unscaled, z_unscaled) = $data.xyz_unscaled();
+        assert_eq!($data.x_unscaled(), x_unscaled);
+        assert_eq!($data.y_unscaled(), y_unscaled);
+        assert_eq!($data.z_unscaled(), z_unscaled);
+
+        let (x_unit, y_unit, z_unit) = $data.$xyz_unit();
+        assert_eq!($data.$x_unit(), x_unit);
+        assert_eq!($data.$y_unit(), y_unit);
+        assert_eq!($data.$z_unit(), z_unit);
+    }};
+}

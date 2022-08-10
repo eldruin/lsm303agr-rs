@@ -1,3 +1,4 @@
+#[macro_use]
 mod common;
 use crate::common::{
     destroy_i2c, destroy_spi, new_i2c, new_spi_mag, BitFlags as BF, Register, DEFAULT_CFG_REG_A_M,
@@ -28,6 +29,12 @@ set_mag_odr!(set_mag_odr_hz20, Hz20, 1 << 2);
 set_mag_odr!(set_mag_odr_hz50, Hz50, 2 << 2);
 set_mag_odr!(set_mag_odr_hz100, Hz100, 3 << 2);
 
+macro_rules! assert_eq_xyz_nt {
+    ($data:expr) => {{
+        crate::assert_eq_xyz!($data, x_nt, y_nt, z_nt, xyz_nt);
+    }};
+}
+
 #[test]
 fn can_take_one_shot_measurement_i2c() {
     let mut sensor = new_i2c(&[
@@ -44,6 +51,8 @@ fn can_take_one_shot_measurement_i2c() {
         ),
     ]);
     let data = nb::block!(sensor.magnetic_field()).unwrap();
+
+    assert_eq_xyz_nt!(data);
 
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
@@ -72,6 +81,8 @@ fn can_take_continuous_measurement_i2c() {
     ]);
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
     let data = sensor.magnetic_field().unwrap();
+
+    assert_eq_xyz_nt!(data);
 
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
@@ -115,6 +126,8 @@ fn can_take_continuous_measurement_spi() {
     );
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
     let data = sensor.magnetic_field().unwrap();
+
+    assert_eq_xyz_nt!(data);
 
     assert_eq!(data.x_raw(), 0x2010);
     assert_eq!(data.y_raw(), 0x4030);
