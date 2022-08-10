@@ -96,7 +96,7 @@ fn spi_acc_id_is_not_correct() {
     let id = sensor.accelerometer_id().unwrap();
 
     assert_eq!(id.raw(), acc_id);
-    assert!(!id.is_whoami());
+    assert!(!id.is_correct());
 
     destroy_spi(sensor);
 }
