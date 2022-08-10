@@ -120,7 +120,7 @@ fn spi_acc_id_is_whoami() {
 }
 
 #[test]
-fn spi_mag_id_is_not_whoami() {
+fn spi_mag_id_is_not_correct() {
     let mag_id = 0xAB;
     let mut sensor = new_spi_mag(
         &[SpiTrans::transfer(
