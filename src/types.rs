@@ -601,3 +601,22 @@ pub enum FifoMode {
     /// Stream-to-FIFO mode
     StreamToFifo,
 }
+
+/// An interrupt.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Interrupt {
+    /// AOI1 interrupt on INT1 pin.
+    Aoi1,
+    /// AOI2 interrupt on INT1 pin.
+    Aoi2,
+    /// CLICK interrupt on INT1 pin.
+    Click,
+    /// DRDY1 interrupt on INT1 pin.
+    DataReady1,
+    /// DRDY2 interrupt on INT1 pin.
+    DataReady2,
+    /// FIFO overrun interrupt on INT1 pin.
+    FifoOverrun,
+    /// FIFO watermark interrupt on INT1 pin.
+    FifoWatermark,
+}

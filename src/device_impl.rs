@@ -2,11 +2,11 @@ use crate::{
     interface::{I2cInterface, ReadData, SpiInterface, WriteData},
     mode,
     register_address::{
-        CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg4A, CtrlReg5A, FifoCtrlRegA, StatusRegA,
-        StatusRegAuxA, StatusRegM, TempCfgRegA, WhoAmIA, WhoAmIM,
+        CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg3A, CtrlReg4A, CtrlReg5A, FifoCtrlRegA,
+        StatusRegA, StatusRegAuxA, StatusRegM, TempCfgRegA, WhoAmIA, WhoAmIM,
     },
-    Acceleration, AccelerometerId, Error, FifoMode, Lsm303agr, MagnetometerId, PhantomData, Status,
-    Temperature, TemperatureStatus,
+    Acceleration, AccelerometerId, Error, FifoMode, Interrupt, Lsm303agr, MagnetometerId,
+    PhantomData, Status, Temperature, TemperatureStatus,
 };
 
 impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
@@ -15,6 +15,7 @@ impl<I2C> Lsm303agr<I2cInterface<I2C>, mode::MagOneShot> {
         Lsm303agr {
             iface: I2cInterface { i2c },
             ctrl_reg1_a: CtrlReg1A::default(),
+            ctrl_reg3_a: CtrlReg3A::default(),
             ctrl_reg4_a: CtrlReg4A::default(),
             ctrl_reg5_a: CtrlReg5A::default(),
             cfg_reg_a_m: CfgRegAM::default(),
@@ -45,6 +46,7 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneSho
                 cs_mag: chip_select_mag,
             },
             ctrl_reg1_a: CtrlReg1A::default(),
+            ctrl_reg3_a: CtrlReg3A::default(),
             ctrl_reg4_a: CtrlReg4A::default(),
             ctrl_reg5_a: CtrlReg5A::default(),
             cfg_reg_a_m: CfgRegAM::default(),
@@ -76,6 +78,7 @@ where
     }
 
     /// Enable block data update for accelerometer.
+    #[inline]
     fn acc_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
         let reg4 = self.ctrl_reg4_a | CtrlReg4A::BDU;
         self.iface.write_accel_register(reg4)?;
@@ -119,6 +122,27 @@ where
             .with_full_threshold(fth);
         self.iface.write_accel_register(fifo_ctrl)?;
         self.fifo_ctrl_reg_a = fifo_ctrl;
+
+        Ok(())
+    }
+
+    /// Enable accelerometer interrupt.
+    pub fn acc_enable_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Error<CommE, PinE>> {
+        let reg3 = self.ctrl_reg3_a.with_interrupt(interrupt);
+        self.iface.write_accel_register(reg3)?;
+        self.ctrl_reg3_a = reg3;
+
+        Ok(())
+    }
+
+    /// Disable accelerometer interrupt.
+    pub fn acc_disable_interrupt(
+        &mut self,
+        interrupt: Interrupt,
+    ) -> Result<(), Error<CommE, PinE>> {
+        let reg3 = self.ctrl_reg3_a.without_interrupt(interrupt);
+        self.iface.write_accel_register(reg3)?;
+        self.ctrl_reg3_a = reg3;
 
         Ok(())
     }

@@ -1,6 +1,6 @@
 use crate::types::{
-    AccelOutputDataRate, AccelScale, AccelerometerId, FifoMode, MagOutputDataRate, MagnetometerId,
-    StatusFlags,
+    AccelOutputDataRate, AccelScale, AccelerometerId, FifoMode, Interrupt, MagOutputDataRate,
+    MagnetometerId, StatusFlags,
 };
 
 pub trait RegRead<D = u8> {
@@ -157,6 +157,7 @@ register! {
 
 register! {
   /// CTRL_REG3_A
+  #[derive(Default)]
   pub struct CtrlReg3A: 0x22 {
     const I1_CLICK   = 0b10000000;
     const I1_AOI1    = 0b01000000;
@@ -166,6 +167,32 @@ register! {
     const I1_WTM     = 0b00000100;
     const I1_OVERRUN = 0b00000010;
   }
+}
+
+impl CtrlReg3A {
+    pub const fn with_interrupt(self, interrupt: Interrupt) -> Self {
+        match interrupt {
+            Interrupt::Click => self.union(Self::I1_CLICK),
+            Interrupt::Aoi1 => self.union(Self::I1_AOI1),
+            Interrupt::Aoi2 => self.union(Self::I1_AOI2),
+            Interrupt::DataReady1 => self.union(Self::I1_DRDY1),
+            Interrupt::DataReady2 => self.union(Self::I1_DRDY2),
+            Interrupt::FifoWatermark => self.union(Self::I1_WTM),
+            Interrupt::FifoOverrun => self.union(Self::I1_OVERRUN),
+        }
+    }
+
+    pub const fn without_interrupt(self, interrupt: Interrupt) -> Self {
+        match interrupt {
+            Interrupt::Click => self.difference(Self::I1_CLICK),
+            Interrupt::Aoi1 => self.difference(Self::I1_AOI1),
+            Interrupt::Aoi2 => self.difference(Self::I1_AOI2),
+            Interrupt::DataReady1 => self.difference(Self::I1_DRDY1),
+            Interrupt::DataReady2 => self.difference(Self::I1_DRDY2),
+            Interrupt::FifoWatermark => self.difference(Self::I1_WTM),
+            Interrupt::FifoOverrun => self.difference(Self::I1_OVERRUN),
+        }
+    }
 }
 
 register! {
@@ -442,6 +469,30 @@ mod tests {
         check_odr(AccelOutputDataRate::Hz100, 0b0101);
         check_odr(AccelOutputDataRate::Hz200, 0b0110);
         check_odr(AccelOutputDataRate::Hz400, 0b0111);
+    }
+
+    #[test]
+    fn ctrl_reg_3_a() {
+        let ctrl = CtrlReg3A::default();
+        let ctrl_all = CtrlReg3A::from_bits_truncate(0b11111110);
+
+        let mut bits = 0b10000000;
+        for interrupt in [
+            Interrupt::Click,
+            Interrupt::Aoi1,
+            Interrupt::Aoi2,
+            Interrupt::DataReady1,
+            Interrupt::DataReady2,
+            Interrupt::FifoWatermark,
+            Interrupt::FifoOverrun,
+        ] {
+            assert_eq!(ctrl.with_interrupt(interrupt).bits(), bits,);
+            assert_eq!(
+                ctrl_all.without_interrupt(interrupt).bits(),
+                (!bits) & 0b11111110
+            );
+            bits >>= 1;
+        }
     }
 
     #[test]

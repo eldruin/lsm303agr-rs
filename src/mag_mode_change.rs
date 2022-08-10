@@ -17,6 +17,7 @@ where
             Ok(_) => Ok(Lsm303agr {
                 iface: self.iface,
                 ctrl_reg1_a: self.ctrl_reg1_a,
+                ctrl_reg3_a: self.ctrl_reg3_a,
                 ctrl_reg4_a: self.ctrl_reg4_a,
                 ctrl_reg5_a: self.ctrl_reg5_a,
                 cfg_reg_a_m: cfg,
@@ -48,6 +49,7 @@ where
             Ok(_) => Ok(Lsm303agr {
                 iface: self.iface,
                 ctrl_reg1_a: self.ctrl_reg1_a,
+                ctrl_reg3_a: self.ctrl_reg3_a,
                 ctrl_reg4_a: self.ctrl_reg4_a,
                 ctrl_reg5_a: self.ctrl_reg5_a,
                 cfg_reg_a_m: cfg,

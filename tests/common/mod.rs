@@ -24,6 +24,7 @@ impl Register {
     pub const WHO_AM_I_A: u8 = 0x0F;
     pub const TEMP_CFG_REG_A: u8 = 0x1F;
     pub const CTRL_REG1_A: u8 = 0x20;
+    pub const CTRL_REG3_A: u8 = 0x22;
     pub const CTRL_REG4_A: u8 = 0x23;
     pub const STATUS_REG_A: u8 = 0x27;
     pub const OUT_X_L_A: u8 = 0x28;
