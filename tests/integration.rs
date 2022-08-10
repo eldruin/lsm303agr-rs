@@ -102,7 +102,7 @@ fn spi_acc_id_is_not_correct() {
 }
 
 #[test]
-fn spi_acc_id_is_whoami() {
+fn spi_acc_id_is_correct() {
     let acc_id = 0x33;
     let mut sensor = new_spi_accel(
         &[SpiTrans::transfer(
