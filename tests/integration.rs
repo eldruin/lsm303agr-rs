@@ -20,7 +20,7 @@ fn can_create_and_destroy_spi() {
 }
 
 #[test]
-fn i2c_acc_id_is_not_whoami() {
+fn i2c_acc_id_is_not_correct() {
     let acc_id = 0xAB;
     let mut sensor = new_i2c(&[I2cTrans::write_read(
         ACCEL_ADDR,
