@@ -449,6 +449,40 @@ impl MagOutputDataRate {
             _ => return None,
         })
     }
+
+    /// 1/ODR ms
+    pub(crate) const fn turn_on_time_us_frac_1(&self) -> u32 {
+        match self {
+            Self::Hz10 => 100,
+            Self::Hz20 => 50,
+            Self::Hz50 => 20,
+            Self::Hz100 => 10,
+        }
+    }
+}
+
+/// Magnetometer mode
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MagMode {
+    /// Low-power mode
+    LowPower,
+    /// High resolution mode
+    HighResolution,
+}
+
+impl Default for MagMode {
+    fn default() -> Self {
+        Self::HighResolution
+    }
+}
+
+impl MagMode {
+    pub(crate) const fn turn_on_time_us(&self) -> u32 {
+        match self {
+            Self::LowPower => 9400,
+            Self::HighResolution => 6400,
+        }
+    }
 }
 
 bitflags! {

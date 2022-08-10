@@ -5,6 +5,7 @@ use crate::common::{
     MAG_ADDR,
 };
 use embedded_hal_mock::{
+    delay::MockNoop as Delay,
     i2c::Transaction as I2cTrans,
     pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
     spi::Transaction as SpiTrans,
@@ -19,7 +20,7 @@ macro_rules! set_mag_odr {
                 MAG_ADDR,
                 vec![Register::CFG_REG_A_M, $value | DEFAULT_CFG_REG_A_M],
             )]);
-            sensor.set_mag_odr(ODR::$hz).unwrap();
+            sensor.set_mag_odr(&mut Delay, ODR::$hz).unwrap();
             destroy_i2c(sensor);
         }
     };

@@ -1,6 +1,6 @@
 use crate::types::{
-    AccelOutputDataRate, AccelScale, AccelerometerId, FifoMode, Interrupt, MagOutputDataRate,
-    MagnetometerId, StatusFlags,
+    AccelOutputDataRate, AccelScale, AccelerometerId, FifoMode, Interrupt, MagMode,
+    MagOutputDataRate, MagnetometerId, StatusFlags,
 };
 
 pub trait RegRead<D = u8> {
@@ -382,6 +382,21 @@ impl Default for CfgRegAM {
 }
 
 impl CfgRegAM {
+    pub const fn mode(&self) -> MagMode {
+        if self.contains(Self::LP) {
+            MagMode::LowPower
+        } else {
+            MagMode::HighResolution
+        }
+    }
+
+    pub const fn with_mode(self, mode: MagMode) -> Self {
+        match mode {
+            MagMode::LowPower => self.union(Self::LP),
+            MagMode::HighResolution => self.difference(Self::LP),
+        }
+    }
+
     pub const fn continuous_mode(self) -> Self {
         self.difference(Self::MD1).difference(Self::MD0) // 0b00
     }
@@ -403,12 +418,31 @@ impl CfgRegAM {
         self.union(Self::MD1).union(Self::MD0) // 0b11
     }
 
+    pub const fn odr(&self) -> MagOutputDataRate {
+        match (self.intersects(Self::ODR1), self.intersects(Self::ODR0)) {
+            (false, false) => MagOutputDataRate::Hz10,
+            (false, true) => MagOutputDataRate::Hz20,
+            (true, false) => MagOutputDataRate::Hz50,
+            (true, true) => MagOutputDataRate::Hz100,
+        }
+    }
+
     pub const fn with_odr(self, odr: MagOutputDataRate) -> Self {
         match odr {
             MagOutputDataRate::Hz10 => self.difference(Self::ODR1).difference(Self::ODR0), // 0b00
             MagOutputDataRate::Hz20 => self.difference(Self::ODR1).union(Self::ODR0),      // 0b01
             MagOutputDataRate::Hz50 => self.union(Self::ODR1).difference(Self::ODR0),      // 0b10
             MagOutputDataRate::Hz100 => self.union(Self::ODR1).union(Self::ODR0),          // 0b11
+        }
+    }
+
+    pub(crate) const fn turn_on_time_us(&self, offset_cancellation: bool) -> u32 {
+        let base_time = self.mode().turn_on_time_us();
+
+        if offset_cancellation {
+            base_time + self.odr().turn_on_time_us_frac_1()
+        } else {
+            base_time
         }
     }
 }
@@ -423,6 +457,12 @@ register! {
     const OFF_CANC          = 0b00000010;
     const LPF               = 0b00000001;
   }
+}
+
+impl CfgRegBM {
+    pub const fn offset_cancellation(&self) -> bool {
+        self.contains(CfgRegBM::OFF_CANC)
+    }
 }
 
 register! {

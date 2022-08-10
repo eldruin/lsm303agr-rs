@@ -127,8 +127,8 @@ mod magnetometer;
 mod types;
 pub use crate::types::{
     mode, AccelMode, AccelOutputDataRate, AccelScale, Acceleration, AccelerometerId, Error,
-    FifoMode, Interrupt, MagOutputDataRate, MagneticField, MagnetometerId, ModeChangeError, Status,
-    Temperature, TemperatureStatus,
+    FifoMode, Interrupt, MagMode, MagOutputDataRate, MagneticField, MagnetometerId,
+    ModeChangeError, Status, Temperature, TemperatureStatus,
 };
 mod register_address;
 use crate::register_address::{
