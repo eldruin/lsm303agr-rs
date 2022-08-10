@@ -159,8 +159,8 @@ impl MagnetometerId {
         self.raw
     }
 
-    /// Check if the ID corresponds to the `WHO_AM_I_M` register value.
-    pub const fn is_whoami(&self) -> bool {
+    /// Check if the ID corresponds to the expected value.
+    pub const fn is_correct(&self) -> bool {
         self.raw == WHO_AM_I_M_VAL
     }
 }
