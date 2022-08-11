@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::register_address::{RegRead, StatusRegAuxA, WHO_AM_I_A_VAL, WHO_AM_I_M_VAL};
+use crate::register_address::{RegRead, StatusRegAuxA, WhoAmIA, WhoAmIM};
 
 /// All possible errors in this crate
 #[derive(Debug)]
@@ -35,10 +35,14 @@ pub mod mode {
 /// An Accelerometer ID.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AccelerometerId {
-    pub(crate) raw: u8,
+    raw: u8,
 }
 
 impl AccelerometerId {
+    pub(crate) fn from_bits_truncate(raw: u8) -> Self {
+        Self { raw }
+    }
+
     /// Raw accelerometer ID.
     pub const fn raw(&self) -> u8 {
         self.raw
@@ -46,7 +50,7 @@ impl AccelerometerId {
 
     /// Check if the ID corresponds to the expected value.
     pub const fn is_correct(&self) -> bool {
-        self.raw == WHO_AM_I_A_VAL
+        self.raw == WhoAmIA::ID
     }
 }
 
@@ -58,6 +62,18 @@ pub struct Acceleration {
     pub(crate) z: u16,
     pub(crate) mode: AccelMode,
     pub(crate) scale: AccelScale,
+}
+
+impl RegRead<(u16, u16, u16)> for Acceleration {
+    type Output = (u16, u16, u16);
+
+    /// OUT_X_L_A
+    const ADDR: u8 = 0x28;
+
+    #[inline(always)]
+    fn from_data(data: (u16, u16, u16)) -> Self::Output {
+        data
+    }
 }
 
 impl Acceleration {
@@ -150,10 +166,14 @@ impl Acceleration {
 /// A Magnetometer ID.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MagnetometerId {
-    pub(crate) raw: u8,
+    raw: u8,
 }
 
 impl MagnetometerId {
+    pub(crate) fn from_bits_truncate(raw: u8) -> Self {
+        Self { raw }
+    }
+
     /// Raw magnetometer ID.
     pub const fn raw(&self) -> u8 {
         self.raw
@@ -161,7 +181,7 @@ impl MagnetometerId {
 
     /// Check if the ID corresponds to the expected value.
     pub const fn is_correct(&self) -> bool {
-        self.raw == WHO_AM_I_M_VAL
+        self.raw == WhoAmIM::ID
     }
 }
 
@@ -171,6 +191,18 @@ pub struct MagneticField {
     pub(crate) x: u16,
     pub(crate) y: u16,
     pub(crate) z: u16,
+}
+
+impl RegRead<(u16, u16, u16)> for MagneticField {
+    type Output = Self;
+
+    /// OUTX_L_REG_M
+    const ADDR: u8 = 0x68;
+
+    #[inline(always)]
+    fn from_data((x, y, z): (u16, u16, u16)) -> Self::Output {
+        Self { x, y, z }
+    }
 }
 
 impl MagneticField {
@@ -421,15 +453,15 @@ impl MagOutputDataRate {
 
 bitflags! {
     #[derive(Default)]
-    struct StatusFlags: u8 {
-        const XDA   = 1 << 0;
-        const YDA   = 1 << 1;
-        const ZDA   = 1 << 2;
-        const ZYXDA = 1 << 3;
-        const XOR   = 1 << 4;
-        const YOR   = 1 << 5;
-        const ZOR   = 1 << 6;
-        const ZYXOR = 1 << 7;
+    pub struct StatusFlags: u8 {
+        const ZYXOR = 0b10000000;
+        const ZOR   = 0b01000000;
+        const YOR   = 0b00100000;
+        const XOR   = 0b00010000;
+        const ZYXDA = 0b00001000;
+        const ZDA   = 0b00000100;
+        const YDA   = 0b00000010;
+        const XDA   = 0b00000001;
     }
 }
 

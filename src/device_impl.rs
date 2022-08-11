@@ -134,13 +134,13 @@ where
     /// Get the accelerometer device ID.
     pub fn accelerometer_id(&mut self) -> Result<AccelerometerId, Error<CommE, PinE>> {
         let id = self.iface.read_accel_register(Register::WHO_AM_I_A)?;
-        Ok(AccelerometerId { raw: id })
+        Ok(AccelerometerId::from_bits_truncate(id))
     }
 
     /// Get the magnetometer device ID.
     pub fn magnetometer_id(&mut self) -> Result<MagnetometerId, Error<CommE, PinE>> {
         let id = self.iface.read_mag_register(Register::WHO_AM_I_M)?;
-        Ok(MagnetometerId { raw: id })
+        Ok(MagnetometerId::from_bits_truncate(id))
     }
 
     /// Get measured temperature.
