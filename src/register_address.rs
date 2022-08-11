@@ -355,6 +355,9 @@ register! {
     const ODR0         = 0b00000100;
     const MD1          = 0b00000010;
     const MD0          = 0b00000001;
+
+    const ODR = Self::ODR1.bits | Self::ODR0.bits;
+    const MD = Self::MD1.bits | Self::MD0.bits;
   }
 }
 
@@ -366,7 +369,7 @@ impl Default for CfgRegAM {
 
 impl CfgRegAM {
     pub const fn continuous_mode(self) -> Self {
-        self.difference(Self::MD1).difference(Self::MD0) // 00
+        self.difference(Self::MD1).difference(Self::MD0) // 0b00
     }
 
     pub const fn is_single_mode(&self) -> bool {
@@ -374,19 +377,23 @@ impl CfgRegAM {
     }
 
     pub const fn single_mode(self) -> Self {
-        self.difference(CfgRegAM::MD1).union(CfgRegAM::MD0) // 01
+        self.difference(CfgRegAM::MD1).union(CfgRegAM::MD0) // 0b01
+    }
+
+    pub const fn is_idle_mode(&self) -> bool {
+        self.contains(CfgRegAM::MD1) // 0b10 or 0b11
     }
 
     pub const fn idle_mode(self) -> Self {
-        self.union(Self::MD1).union(Self::MD0) // 11
+        self.union(Self::MD1).union(Self::MD0) // 0b11
     }
 
     pub const fn with_odr(self, odr: MagOutputDataRate) -> Self {
         match odr {
-            MagOutputDataRate::Hz10 => self.difference(Self::ODR1).difference(Self::ODR0), // 00
-            MagOutputDataRate::Hz20 => self.difference(Self::ODR1).union(Self::ODR0),      // 01
-            MagOutputDataRate::Hz50 => self.union(Self::ODR1).difference(Self::ODR0),      // 10
-            MagOutputDataRate::Hz100 => self.union(Self::ODR1).union(Self::ODR0),          // 11
+            MagOutputDataRate::Hz10 => self.difference(Self::ODR1).difference(Self::ODR0), // 0b00
+            MagOutputDataRate::Hz20 => self.difference(Self::ODR1).union(Self::ODR0),      // 0b01
+            MagOutputDataRate::Hz50 => self.union(Self::ODR1).difference(Self::ODR0),      // 0b10
+            MagOutputDataRate::Hz100 => self.union(Self::ODR1).union(Self::ODR0),          // 0b11
         }
     }
 }
@@ -419,4 +426,75 @@ register! {
 register! {
   /// STATUS_REG_M
   pub type StatusRegM: 0x67 = StatusFlags;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_reg_1_a() {
+        let ctrl = CtrlReg1A::default();
+
+        assert!(ctrl.contains(CtrlReg1A::XEN), "X-axis enabled by default.");
+        assert!(ctrl.contains(CtrlReg1A::YEN), "Y-axis enabled by default.");
+        assert!(ctrl.contains(CtrlReg1A::ZEN), "Z-axis enabled by default.");
+
+        let check_odr = |odr, value| {
+            assert_eq!(
+                ctrl.with_odr(odr).intersection(CtrlReg1A::ODR).bits() >> 4,
+                value
+            );
+        };
+
+        check_odr(AccelOutputDataRate::Hz1, 0b0001);
+        check_odr(AccelOutputDataRate::Hz10, 0b0010);
+        check_odr(AccelOutputDataRate::Hz25, 0b0011);
+        check_odr(AccelOutputDataRate::Hz50, 0b0100);
+        check_odr(AccelOutputDataRate::Hz100, 0b0101);
+        check_odr(AccelOutputDataRate::Hz200, 0b0110);
+        check_odr(AccelOutputDataRate::Hz400, 0b0111);
+    }
+
+    #[test]
+    fn ctrl_reg_4_a() {
+        let ctrl = CtrlReg4A::default();
+        assert_eq!(ctrl.bits(), 0);
+
+        assert_eq!(ctrl.scale(), AccelScale::G2);
+
+        let ctrl_g4 = ctrl.with_scale(AccelScale::G4);
+        assert_eq!(ctrl_g4.scale(), AccelScale::G4);
+        let ctrl_g8 = ctrl_g4.with_scale(AccelScale::G8);
+        assert_eq!(ctrl_g8.scale(), AccelScale::G8);
+        let ctrl_g16 = ctrl_g8.with_scale(AccelScale::G16);
+        assert_eq!(ctrl_g16.scale(), AccelScale::G16);
+        let ctrl_g2 = ctrl_g16.with_scale(AccelScale::G2);
+        assert_eq!(ctrl_g2.scale(), AccelScale::G2);
+    }
+
+    #[test]
+    fn cfg_reg_a_m() {
+        let cfg = CfgRegAM::default();
+        assert!(cfg.is_idle_mode(), "Idle mode is default.");
+
+        let cfg = cfg.single_mode();
+        assert!(cfg.is_single_mode());
+
+        let check_odr = |odr, value| {
+            assert_eq!(
+                cfg.with_odr(odr).intersection(CfgRegAM::ODR).bits() >> 2,
+                value
+            );
+        };
+
+        check_odr(MagOutputDataRate::Hz10, 0b00);
+        check_odr(MagOutputDataRate::Hz20, 0b01);
+        check_odr(MagOutputDataRate::Hz50, 0b10);
+        check_odr(MagOutputDataRate::Hz100, 0b11);
+
+        let cfg = cfg.continuous_mode();
+        assert!(!cfg.is_single_mode());
+        assert!(!cfg.is_idle_mode());
+    }
 }
