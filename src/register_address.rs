@@ -1,3 +1,5 @@
+#![allow(dead_code)] // TODO: Remove.
+
 pub struct Register;
 
 impl Register {
