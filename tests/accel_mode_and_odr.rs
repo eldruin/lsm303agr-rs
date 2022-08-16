@@ -181,13 +181,16 @@ fn can_power_down_after_odr3() {
 }
 
 #[test]
-fn can_enable_interrupts() {
-    let mut sensor = new_i2c(&[I2cTrans::write(
-        ACCEL_ADDR,
-        vec![Register::CTRL_REG3_A, 0b100],
-    )]);
+fn can_enable_disable_interrupts() {
+    let mut sensor = new_i2c(&[
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG3_A, 0b100]),
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG3_A, 0b000]),
+    ]);
     sensor
         .acc_enable_interrupt(Interrupt::FifoWatermark)
+        .unwrap();
+    sensor
+        .acc_disable_interrupt(Interrupt::FifoWatermark)
         .unwrap();
     destroy_i2c(sensor);
 }
