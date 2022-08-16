@@ -23,6 +23,7 @@
 //!     - Set magnetometer output data rate. See: [`set_mag_odr()`](Lsm303agr::set_mag_odr).
 //!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
 //!     - Enable/disable magnetometer built in offset cancellation. See: [`enable_mag_offset_cancellation()`](Lsm303agr::enable_mag_offset_cancellation).
+//!     - Enable/disable magnetometer low-pass filter. See: [`mag_enable_low_pass_filter()`](Lsm303agr::mag_enable_low_pass_filter).
 //!
 //! <!-- TODO
 //! [Introductory blog post](TODO)

@@ -217,3 +217,31 @@ fn can_disable_mag_offset_cancellation_one_shot() {
 
     destroy_i2c(sensor);
 }
+
+#[test]
+fn can_enable_mag_low_pass_filter() {
+    let mut sensor = new_i2c(&[
+        // Enable low-pass filter
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_B_M, 0b1]),
+    ]);
+
+    sensor
+        .mag_enable_low_pass_filter()
+        .expect("failed to enable low-pass filter");
+
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_disable_mag_low_pass_filter() {
+    let mut sensor = new_i2c(&[
+        // Disable low-pass filter
+        I2cTrans::write(MAG_ADDR, vec![Register::CFG_REG_B_M, 0b0]),
+    ]);
+
+    sensor
+        .mag_disable_low_pass_filter()
+        .expect("failed to disable low-pass filter");
+
+    destroy_i2c(sensor);
+}

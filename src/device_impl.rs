@@ -111,6 +111,24 @@ where
         Ok(())
     }
 
+    /// Enable magnetometer low-pass filter.
+    pub fn mag_enable_low_pass_filter(&mut self) -> Result<(), Error<CommE, PinE>> {
+        let regb = self.cfg_reg_b_m.union(CfgRegBM::LPF);
+        self.iface.write_mag_register(regb)?;
+        self.cfg_reg_b_m = regb;
+
+        Ok(())
+    }
+
+    /// Disable magnetometer low-pass filter.
+    pub fn mag_disable_low_pass_filter(&mut self) -> Result<(), Error<CommE, PinE>> {
+        let regb = self.cfg_reg_b_m.difference(CfgRegBM::LPF);
+        self.iface.write_mag_register(regb)?;
+        self.cfg_reg_b_m = regb;
+
+        Ok(())
+    }
+
     /// Accelerometer status
     pub fn accel_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
         self.iface

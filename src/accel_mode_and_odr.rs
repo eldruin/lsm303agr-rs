@@ -35,7 +35,7 @@ where
         }
 
         self.iface.write_accel_register(reg1)?;
-        self.ctrl_reg1_a = reg1.into();
+        self.ctrl_reg1_a = reg1;
         self.accel_odr = Some(odr);
 
         let mode = self.get_accel_mode();
