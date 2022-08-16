@@ -31,6 +31,7 @@ This driver allows you to:
     - Get magnetometer ID. See: `magnetometer_id()`.
     - Enable/disable magnetometer built in offset cancellation. See: `enable_mag_offset_cancellation()`.
     - Enable/disable magnetometer low-pass filter. See: `mag_enable_low_pass_filter()`.
+    - Set magnetometer mode. See: `set_mag_mode()`.
 
 <!-- TODO
 [Introductory blog post]()

@@ -11,7 +11,9 @@ impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Set magnetometer output data rate
+    /// Set magnetometer output data rate.
+    ///
+    #[doc = include_str!("delay.md")]
     pub fn set_mag_odr<D: DelayUs<u32>>(
         &mut self,
         delay: &mut D,
@@ -33,7 +35,9 @@ where
         Ok(())
     }
 
-    /// Set magnetometer power/resolution mode.
+    /// Set magnetometer power mode.
+    ///
+    #[doc = include_str!("delay.md")]
     pub fn set_mag_mode<D: DelayUs<u32>>(
         &mut self,
         delay: &mut D,
