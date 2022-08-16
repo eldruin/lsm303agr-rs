@@ -109,7 +109,9 @@ where
         Ok(())
     }
 
-    /// Set the accelerometer FIFO mode and full threshold (0 - 31).
+    /// Set the accelerometer FIFO mode and full threshold.
+    ///
+    /// The threshold is clamped to \[0, 31\].
     pub fn acc_set_fifo_mode(&mut self, mode: FifoMode, fth: u8) -> Result<(), Error<CommE, PinE>> {
         let mut reg5 = self.ctrl_reg5_a;
         reg5.set(CtrlReg5A::FIFO_EN, mode != FifoMode::Bypass);
