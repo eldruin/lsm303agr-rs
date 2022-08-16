@@ -16,6 +16,8 @@
 //!     - Get accelerometer ID. See: [`accelerometer_id()`](Lsm303agr::accelerometer_id).
 //!     - Get temperature sensor status. See: [`temperature_status()`](Lsm303agr::temperature_status).
 //!     - Read measured temperature. See: [`temperature()`](Lsm303agr::temperature).
+//!     - Configure FIFO. See: [`acc_set_fifo_mode()`](Lsm303agr::acc_set_fifo_mode).
+//!     - Enable/disable interrupts. See: [`acc_enable_interrupt()`](Lsm303agr::acc_enable_interrupt).
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`](Lsm303agr::mag_status).
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`](Lsm303agr::into_mag_continuous).
@@ -125,11 +127,14 @@ mod magnetometer;
 mod types;
 pub use crate::types::{
     mode, AccelMode, AccelOutputDataRate, AccelScale, Acceleration, AccelerometerId, Error,
-    MagOutputDataRate, MagneticField, MagnetometerId, ModeChangeError, Status, Temperature,
-    TemperatureStatus,
+    FifoMode, Interrupt, MagOutputDataRate, MagneticField, MagnetometerId, ModeChangeError, Status,
+    Temperature, TemperatureStatus,
 };
 mod register_address;
-use crate::register_address::{CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg4A, TempCfgRegA};
+use crate::register_address::{
+    CfgRegAM, CfgRegBM, CfgRegCM, CtrlReg1A, CtrlReg3A, CtrlReg4A, CtrlReg5A, FifoCtrlRegA,
+    TempCfgRegA,
+};
 
 /// LSM303AGR device driver
 #[derive(Debug)]
@@ -137,11 +142,14 @@ pub struct Lsm303agr<DI, MODE> {
     /// Digital interface: I2C or SPI
     iface: DI,
     ctrl_reg1_a: CtrlReg1A,
+    ctrl_reg3_a: CtrlReg3A,
     ctrl_reg4_a: CtrlReg4A,
+    ctrl_reg5_a: CtrlReg5A,
     cfg_reg_a_m: CfgRegAM,
     cfg_reg_b_m: CfgRegBM,
     cfg_reg_c_m: CfgRegCM,
     temp_cfg_reg_a: TempCfgRegA,
+    fifo_ctrl_reg_a: FifoCtrlRegA,
     accel_odr: Option<AccelOutputDataRate>,
     _mag_mode: PhantomData<MODE>,
 }

@@ -21,6 +21,8 @@ This driver allows you to:
     - Get accelerometer ID. See: `accelerometer_id()`.
     - Get temperature sensor status. See: `temperature_status()`.
     - Read measured temperature. See: `temperature()`.
+    - Configure FIFO. See: `acc_set_fifo_mode()`.
+    - Enable/disable interrupts. See: `acc_enable_interrupt()`.
 - Magnetometer:
     - Get the magnetometer status. See: `mag_status()`.
     - Change into continuous/one-shot mode. See: `into_mag_continuous()`.

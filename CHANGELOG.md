@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add explicit types for accelerometer and magnetometer IDs.
 - Allow getting `AccelOutputDataRate` and `MagOutputDataRate` from Hertz.
 - Allow enabling/disabling magnetometer low-pass filter.
+- Allow configuring accelerometer FIFO and interrupts.
 
 ## [0.2.2] - 2021-09-21
 
