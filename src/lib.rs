@@ -16,6 +16,8 @@
 //!     - Get accelerometer ID. See: [`accelerometer_id()`](Lsm303agr::accelerometer_id).
 //!     - Get temperature sensor status. See: [`temperature_status()`](Lsm303agr::temperature_status).
 //!     - Read measured temperature. See: [`temperature()`](Lsm303agr::temperature).
+//!     - Configure FIFO. See: [`acc_set_fifo_mode()`](Lsm303agr::acc_set_fifo_mode).
+//!     - Enable/disable interrupts. See: [`acc_enable_interrupt()`](Lsm303agr::acc_enable_interrupt).
 //! - Magnetometer:
 //!     - Get the magnetometer status. See: [`mag_status()`](Lsm303agr::mag_status).
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`](Lsm303agr::into_mag_continuous).
