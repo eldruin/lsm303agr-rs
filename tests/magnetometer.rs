@@ -10,7 +10,7 @@ use embedded_hal_mock::{
     pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
     spi::Transaction as SpiTrans,
 };
-use lsm303agr::MagOutputDataRate as ODR;
+use lsm303agr::{MagMode, MagOutputDataRate as ODR};
 
 macro_rules! set_mag_odr {
     ($name:ident, $hz:ident, $value:expr) => {
@@ -29,6 +29,33 @@ set_mag_odr!(set_mag_odr_hz10, Hz10, 0);
 set_mag_odr!(set_mag_odr_hz20, Hz20, 1 << 2);
 set_mag_odr!(set_mag_odr_hz50, Hz50, 2 << 2);
 set_mag_odr!(set_mag_odr_hz100, Hz100, 3 << 2);
+
+#[test]
+fn can_change_mode() {
+    let mut sensor = new_i2c(&[
+        // Set low-power mode
+        I2cTrans::write(
+            MAG_ADDR,
+            vec![Register::CFG_REG_A_M, DEFAULT_CFG_REG_A_M | 0b00010000],
+        ),
+        // Set high-resolution mode
+        I2cTrans::write(
+            MAG_ADDR,
+            vec![Register::CFG_REG_A_M, DEFAULT_CFG_REG_A_M | 0b00000000],
+        ),
+    ]);
+    assert_eq!(sensor.get_mag_mode(), MagMode::HighResolution);
+
+    sensor.set_mag_mode(&mut Delay, MagMode::LowPower).unwrap();
+    assert_eq!(sensor.get_mag_mode(), MagMode::LowPower);
+
+    sensor
+        .set_mag_mode(&mut Delay, MagMode::HighResolution)
+        .unwrap();
+    assert_eq!(sensor.get_mag_mode(), MagMode::HighResolution);
+
+    destroy_i2c(sensor);
+}
 
 macro_rules! assert_eq_xyz_nt {
     ($data:expr) => {{
