@@ -3,7 +3,7 @@ use crate::common::{
     destroy_i2c, new_i2c, BitFlags as BF, Register, ACCEL_ADDR, DEFAULT_CTRL_REG1_A,
 };
 use embedded_hal_mock::{delay::MockNoop as Delay, i2c::Transaction as I2cTrans};
-use lsm303agr::{AccelMode as Mode, AccelOutputDataRate as ODR, Interrupt};
+use lsm303agr::{AccelMode as Mode, AccelOutputDataRate as ODR, FifoMode, Interrupt};
 
 macro_rules! normal_pwr {
     ($name:ident, $hz:ident, $value:expr) => {
@@ -192,5 +192,27 @@ fn can_enable_disable_interrupts() {
     sensor
         .acc_disable_interrupt(Interrupt::FifoWatermark)
         .unwrap();
+    destroy_i2c(sensor);
+}
+
+#[test]
+fn can_set_fifo_mode() {
+    let mut sensor = new_i2c(&[
+        // Enable FIFO
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG5_A, 0b01000000]),
+        // Stream mode, 31
+        I2cTrans::write(ACCEL_ADDR, vec![Register::FIFO_CTRL_REG_A, 0b10011111]),
+        // Enable FIFO
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG5_A, 0b01000000]),
+        // FIFO mode, 4
+        I2cTrans::write(ACCEL_ADDR, vec![Register::FIFO_CTRL_REG_A, 0b01000100]),
+        // Disable FIFO
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG5_A, 0b00000000]),
+        // Bypass mode, 0
+        I2cTrans::write(ACCEL_ADDR, vec![Register::FIFO_CTRL_REG_A, 0b00000000]),
+    ]);
+    sensor.acc_set_fifo_mode(FifoMode::Stream, 31).unwrap();
+    sensor.acc_set_fifo_mode(FifoMode::Fifo, 4).unwrap();
+    sensor.acc_set_fifo_mode(FifoMode::Bypass, 0).unwrap();
     destroy_i2c(sensor);
 }

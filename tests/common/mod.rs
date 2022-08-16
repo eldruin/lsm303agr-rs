@@ -26,6 +26,8 @@ impl Register {
     pub const CTRL_REG1_A: u8 = 0x20;
     pub const CTRL_REG3_A: u8 = 0x22;
     pub const CTRL_REG4_A: u8 = 0x23;
+    pub const CTRL_REG5_A: u8 = 0x24;
+    pub const FIFO_CTRL_REG_A: u8 = 0x2E;
     pub const STATUS_REG_A: u8 = 0x27;
     pub const OUT_X_L_A: u8 = 0x28;
     pub const WHO_AM_I_M: u8 = 0x4F;
