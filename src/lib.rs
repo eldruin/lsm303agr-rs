@@ -26,6 +26,7 @@
 //!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
 //!     - Enable/disable magnetometer built in offset cancellation. See: [`enable_mag_offset_cancellation()`](Lsm303agr::enable_mag_offset_cancellation).
 //!     - Enable/disable magnetometer low-pass filter. See: [`mag_enable_low_pass_filter()`](Lsm303agr::mag_enable_low_pass_filter).
+//!     - Set magnetometer mode. See: [`set_mag_mode()`](Lsm303agr::set_mag_mode).
 //!
 //! <!-- TODO
 //! [Introductory blog post](TODO)
@@ -127,8 +128,8 @@ mod magnetometer;
 mod types;
 pub use crate::types::{
     mode, AccelMode, AccelOutputDataRate, AccelScale, Acceleration, AccelerometerId, Error,
-    FifoMode, Interrupt, MagOutputDataRate, MagneticField, MagnetometerId, ModeChangeError, Status,
-    Temperature, TemperatureStatus,
+    FifoMode, Interrupt, MagMode, MagOutputDataRate, MagneticField, MagnetometerId,
+    ModeChangeError, Status, Temperature, TemperatureStatus,
 };
 mod register_address;
 use crate::register_address::{

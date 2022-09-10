@@ -1,20 +1,66 @@
+use embedded_hal::blocking::delay::DelayUs;
+
 use crate::{
     interface::{ReadData, WriteData},
     mode,
     register_address::{CfgRegAM, CfgRegBM},
-    Error, Lsm303agr, MagOutputDataRate, MagneticField,
+    Error, Lsm303agr, MagMode, MagOutputDataRate, MagneticField,
 };
 
 impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Set magnetometer output data rate
-    pub fn set_mag_odr(&mut self, odr: MagOutputDataRate) -> Result<(), Error<CommE, PinE>> {
-        let cfg = self.cfg_reg_a_m.with_odr(odr);
-        self.iface.write_mag_register(cfg)?;
-        self.cfg_reg_a_m = cfg;
+    /// Set magnetometer output data rate.
+    ///
+    #[doc = include_str!("delay.md")]
+    pub fn set_mag_odr<D: DelayUs<u32>>(
+        &mut self,
+        delay: &mut D,
+        odr: MagOutputDataRate,
+    ) -> Result<(), Error<CommE, PinE>> {
+        let rega = self.cfg_reg_a_m;
+
+        let old_odr = rega.odr();
+
+        let rega = rega.with_odr(odr);
+        self.iface.write_mag_register(rega)?;
+        self.cfg_reg_a_m = rega;
+
+        if old_odr != odr && self.cfg_reg_b_m.offset_cancellation() {
+            // Mode did not change, so only wait for 1/ODR ms.
+            delay.delay_us(odr.turn_on_time_us_frac_1());
+        }
+
         Ok(())
+    }
+
+    /// Set magnetometer power mode.
+    ///
+    #[doc = include_str!("delay.md")]
+    pub fn set_mag_mode<D: DelayUs<u32>>(
+        &mut self,
+        delay: &mut D,
+        mode: MagMode,
+    ) -> Result<(), Error<CommE, PinE>> {
+        let rega = self.cfg_reg_a_m;
+
+        let old_mode = rega.mode();
+
+        let rega = rega.with_mode(mode);
+        self.iface.write_mag_register(rega)?;
+        self.cfg_reg_a_m = rega;
+
+        if old_mode != mode {
+            delay.delay_us(rega.turn_on_time_us(self.cfg_reg_b_m.offset_cancellation()));
+        }
+
+        Ok(())
+    }
+
+    /// Get magnetometer power/resolution mode.
+    pub fn get_mag_mode(&self) -> MagMode {
+        self.cfg_reg_a_m.mode()
     }
 }
 
