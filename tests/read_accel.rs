@@ -10,7 +10,13 @@ use lsm303agr::{AccelMode, AccelOutputDataRate, AccelScale};
 
 fn i2c_mode_txns(mode: &AccelMode) -> Vec<I2cTrans> {
     match mode {
-        AccelMode::Normal => vec![],
+        AccelMode::Normal => vec![
+            I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
+            I2cTrans::write(
+                ACCEL_ADDR,
+                vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
+            ),
+        ],
         AccelMode::LowPower => vec![
             I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
             I2cTrans::write(
@@ -60,10 +66,7 @@ macro_rules! can_get_i2c {
         fn $name() {
             let mode = AccelMode::$mode;
             let scale = AccelScale::$scale;
-            let mut txns: Vec<I2cTrans> = vec![I2cTrans::write(
-                ACCEL_ADDR,
-                vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
-            )];
+            let mut txns: Vec<I2cTrans> = vec![];
             txns.append(&mut i2c_mode_txns(&mode));
             txns.append(&mut i2c_scale_txns(&mode, &scale));
             txns.push(I2cTrans::write_read(
@@ -72,13 +75,11 @@ macro_rules! can_get_i2c {
                 vec![0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
             ));
             let mut sensor = new_i2c(&txns);
+
             sensor
-                .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+                .set_accel_mode_and_odr(&mut Delay, mode, AccelOutputDataRate::Hz50)
                 .unwrap();
 
-            if let AccelMode::LowPower | AccelMode::HighResolution = mode {
-                sensor.set_accel_mode(&mut Delay, mode).unwrap();
-            }
             if let AccelScale::G2 = scale {
             } else {
                 sensor.set_accel_scale(scale).unwrap();
@@ -152,10 +153,6 @@ macro_rules! assert_eq_xyz_mg {
 #[test]
 fn can_get_8_bit_data_i2c() {
     let mut sensor = new_i2c(&[
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
-        ),
         I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
         I2cTrans::write(
             ACCEL_ADDR,
@@ -171,10 +168,7 @@ fn can_get_8_bit_data_i2c() {
         ),
     ]);
     sensor
-        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
-        .unwrap();
-    sensor
-        .set_accel_mode(&mut Delay, AccelMode::LowPower)
+        .set_accel_mode_and_odr(&mut Delay, AccelMode::LowPower, AccelOutputDataRate::Hz50)
         .unwrap();
     let data = sensor.acceleration().unwrap();
 
@@ -204,6 +198,7 @@ fn can_get_8_bit_data_i2c() {
 #[test]
 fn can_get_10_bit_data_i2c() {
     let mut sensor = new_i2c(&[
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
         I2cTrans::write(
             ACCEL_ADDR,
             vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
@@ -215,7 +210,7 @@ fn can_get_10_bit_data_i2c() {
         ),
     ]);
     sensor
-        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz50)
         .unwrap();
     let data = sensor.acceleration().unwrap();
 
@@ -247,6 +242,7 @@ fn can_get_10_bit_data_i2c() {
 fn can_get_10_bit_data_spi() {
     let mut sensor = new_spi_accel(
         &[
+            SpiTrans::write(vec![Register::CTRL_REG4_A, 0]),
             SpiTrans::write(vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50]),
             SpiTrans::transfer(
                 vec![
@@ -261,10 +257,10 @@ fn can_get_10_bit_data_spi() {
                 vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
             ),
         ],
-        default_cs_n(2),
+        default_cs_n(3),
     );
     sensor
-        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz50)
         .unwrap();
     let data = sensor.acceleration().unwrap();
 
@@ -297,10 +293,6 @@ fn can_get_12_bit_data_i2c() {
             ACCEL_ADDR,
             vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
         ),
-        I2cTrans::write(
-            ACCEL_ADDR,
-            vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
-        ),
         I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, BF::HR]),
         I2cTrans::write_read(
             ACCEL_ADDR,
@@ -309,10 +301,11 @@ fn can_get_12_bit_data_i2c() {
         ),
     ]);
     sensor
-        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
-        .unwrap();
-    sensor
-        .set_accel_mode(&mut Delay, AccelMode::HighResolution)
+        .set_accel_mode_and_odr(
+            &mut Delay,
+            AccelMode::HighResolution,
+            AccelOutputDataRate::Hz50,
+        )
         .unwrap();
     let data = sensor.acceleration().unwrap();
 

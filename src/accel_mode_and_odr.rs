@@ -10,75 +10,51 @@ impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Set accelerometer output data rate.
+    /// Set accelerometer power/resolution mode and output data rate.
     ///
-    /// This changes the power mode if the current one is not appropriate.
-    /// When changing from a low-power-only output data rate setting into
-    /// a high-resolution or normal power mode, it changes into normal mode.
+    /// Returns `Error::InvalidInputData` if the mode is incompatible with
+    /// the given output data rate.
     ///
     #[doc = include_str!("delay.md")]
-    pub fn set_accel_odr<D: DelayUs<u32>>(
+    pub fn set_accel_mode_and_odr<D: DelayUs<u32>>(
         &mut self,
         delay: &mut D,
-        odr: AccelOutputDataRate,
+        mode: AccelMode,
+        odr: impl Into<Option<AccelOutputDataRate>>,
     ) -> Result<(), Error<CommE, PinE>> {
+        let odr = odr.into();
+
+        check_accel_odr_is_compatible_with_mode(odr, mode)?;
+
         let old_mode = self.get_accel_mode();
 
-        let reg1 = self.ctrl_reg1_a.with_odr(odr);
+        let mut reg1 = self.ctrl_reg1_a.difference(CtrlReg1A::ODR);
 
-        // Check if low-power mode should be enabled.
-        if reg1.contains(CtrlReg1A::LPEN) {
-            // Disable high-resolution mode if it is enabled.
-            if self.ctrl_reg4_a.contains(CtrlReg4A::HR) {
-                self.disable_hr()?;
-            }
+        if let Some(odr) = odr {
+            reg1 = reg1.with_odr(odr);
+        }
+
+        let reg1 = if mode == AccelMode::LowPower {
+            reg1.union(CtrlReg1A::LPEN)
+        } else {
+            reg1.difference(CtrlReg1A::LPEN)
+        };
+
+        let reg4 = self.ctrl_reg4_a.difference(CtrlReg4A::HR);
+
+        if mode != AccelMode::HighResolution {
+            self.iface.write_accel_register(reg4)?;
+            self.ctrl_reg4_a = reg4;
         }
 
         self.iface.write_accel_register(reg1)?;
         self.ctrl_reg1_a = reg1;
-        self.accel_odr = Some(odr);
+        self.accel_odr = odr;
 
-        let mode = self.get_accel_mode();
-        let change_time = old_mode.change_time_us(mode, odr);
-        delay.delay_us(change_time);
-
-        Ok(())
-    }
-
-    /// Set accelerometer power/resolution mode
-    ///
-    /// Returns `Error::InvalidInputData` if the mode is incompatible with the current
-    /// accelerometer output data rate.
-    ///
-    #[doc = include_str!("delay.md")]
-    pub fn set_accel_mode<D: DelayUs<u32>>(
-        &mut self,
-        delay: &mut D,
-        mode: AccelMode,
-    ) -> Result<(), Error<CommE, PinE>> {
-        check_accel_odr_is_compatible_with_mode(self.accel_odr, mode)?;
-
-        let old_mode = self.get_accel_mode();
-
-        match mode {
-            AccelMode::HighResolution => {
-                self.disable_lp()?;
-                self.enable_hr()?;
-            }
-            AccelMode::Normal => {
-                self.disable_lp()?;
-                self.disable_hr()?;
-            }
-            AccelMode::LowPower => {
-                self.disable_hr()?;
-                self.enable_lp()?;
-            }
-            AccelMode::PowerDown => {
-                let reg1 = self.ctrl_reg1_a.difference(CtrlReg1A::ODR);
-                self.iface.write_accel_register(reg1)?;
-                self.ctrl_reg1_a = reg1;
-                self.accel_odr = None;
-            }
+        if mode == AccelMode::HighResolution {
+            let reg4 = reg4.union(CtrlReg4A::HR);
+            self.iface.write_accel_register(reg4)?;
+            self.ctrl_reg4_a = reg4;
         }
 
         if let Some(odr) = self.accel_odr {
@@ -122,48 +98,23 @@ where
     pub fn get_accel_scale(&self) -> AccelScale {
         self.ctrl_reg4_a.scale()
     }
-
-    fn enable_hr(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg4 = self.ctrl_reg4_a.union(CtrlReg4A::HR);
-        self.iface.write_accel_register(reg4)?;
-        self.ctrl_reg4_a = reg4;
-        Ok(())
-    }
-
-    fn disable_hr(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg4 = self.ctrl_reg4_a.difference(CtrlReg4A::HR);
-        self.iface.write_accel_register(reg4)?;
-        self.ctrl_reg4_a = reg4;
-        Ok(())
-    }
-
-    fn enable_lp(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg1 = self.ctrl_reg1_a.union(CtrlReg1A::LPEN);
-        self.iface.write_accel_register(reg1)?;
-        self.ctrl_reg1_a = reg1;
-        Ok(())
-    }
-
-    fn disable_lp(&mut self) -> Result<(), Error<CommE, PinE>> {
-        let reg1 = self.ctrl_reg1_a.difference(CtrlReg1A::LPEN);
-        self.iface.write_accel_register(reg1)?;
-        self.ctrl_reg1_a = reg1;
-        Ok(())
-    }
 }
 
 fn check_accel_odr_is_compatible_with_mode<CommE, PinE>(
     odr: Option<AccelOutputDataRate>,
     mode: AccelMode,
 ) -> Result<(), Error<CommE, PinE>> {
-    if (odr == Some(AccelOutputDataRate::Khz1_620LowPower)
-        || odr == Some(AccelOutputDataRate::Khz5_376LowPower))
-        && (mode == AccelMode::Normal || mode == AccelMode::HighResolution)
-        || (odr == Some(AccelOutputDataRate::Khz1_344) && mode == AccelMode::LowPower)
-    {
-        Err(Error::InvalidInputData)
-    } else {
-        Ok(())
+    match (odr, mode) {
+        (None, AccelMode::PowerDown) => Ok(()),
+        (None, _) => Err(Error::InvalidInputData),
+        (Some(odr), mode) => match (odr, mode) {
+            (AccelOutputDataRate::Khz1_344, AccelMode::LowPower)
+            | (
+                AccelOutputDataRate::Khz1_620LowPower | AccelOutputDataRate::Khz5_376LowPower,
+                AccelMode::Normal | AccelMode::HighResolution,
+            ) => Err(Error::InvalidInputData),
+            _ => Ok(()),
+        },
     }
 }
 
@@ -190,6 +141,13 @@ mod accel_odr_mode_tests {
     macro_rules! none_odr_compatible {
         ($power:ident) => {
             check_accel_odr_is_compatible_with_mode::<(), ()>(None, AccelMode::$power).unwrap();
+        };
+    }
+
+    macro_rules! not_none_odr_compatible {
+        ($power:ident) => {
+            check_accel_odr_is_compatible_with_mode::<(), ()>(None, AccelMode::$power)
+                .expect_err("Shout not be compatible");
         };
     }
 
@@ -251,9 +209,9 @@ mod accel_odr_mode_tests {
 
     #[test]
     fn none_odr_compatibility() {
-        none_odr_compatible!(LowPower);
-        none_odr_compatible!(Normal);
-        none_odr_compatible!(HighResolution);
+        not_none_odr_compatible!(LowPower);
+        not_none_odr_compatible!(Normal);
+        not_none_odr_compatible!(HighResolution);
         none_odr_compatible!(PowerDown);
     }
 }

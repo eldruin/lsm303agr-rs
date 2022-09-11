@@ -20,7 +20,9 @@ macro_rules! set_mag_odr {
                 MAG_ADDR,
                 vec![Register::CFG_REG_A_M, $value | DEFAULT_CFG_REG_A_M],
             )]);
-            sensor.set_mag_odr(&mut Delay, ODR::$hz).unwrap();
+            sensor
+                .set_mag_mode_and_odr(&mut Delay, MagMode::HighResolution, ODR::$hz)
+                .unwrap();
             destroy_i2c(sensor);
         }
     };
@@ -36,7 +38,7 @@ fn can_change_mode() {
         // Set low-power mode
         I2cTrans::write(
             MAG_ADDR,
-            vec![Register::CFG_REG_A_M, DEFAULT_CFG_REG_A_M | 0b00010000],
+            vec![Register::CFG_REG_A_M, DEFAULT_CFG_REG_A_M | 0b00011100],
         ),
         // Set high-resolution mode
         I2cTrans::write(
@@ -46,11 +48,13 @@ fn can_change_mode() {
     ]);
     assert_eq!(sensor.get_mag_mode(), MagMode::HighResolution);
 
-    sensor.set_mag_mode(&mut Delay, MagMode::LowPower).unwrap();
+    sensor
+        .set_mag_mode_and_odr(&mut Delay, MagMode::LowPower, ODR::Hz100)
+        .unwrap();
     assert_eq!(sensor.get_mag_mode(), MagMode::LowPower);
 
     sensor
-        .set_mag_mode(&mut Delay, MagMode::HighResolution)
+        .set_mag_mode_and_odr(&mut Delay, MagMode::HighResolution, ODR::Hz10)
         .unwrap();
     assert_eq!(sensor.get_mag_mode(), MagMode::HighResolution);
 

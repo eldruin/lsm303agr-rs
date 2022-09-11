@@ -6,7 +6,7 @@ use crate::common::{
 use embedded_hal_mock::{
     delay::MockNoop as Delay, i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans,
 };
-use lsm303agr::AccelOutputDataRate;
+use lsm303agr::{AccelMode, AccelOutputDataRate};
 
 #[test]
 fn can_read_temperature_has_new_data() {
@@ -47,6 +47,7 @@ fn can_read_temperature_has_no_new_data() {
 #[test]
 fn can_read_temperature_i2c() {
     let mut sensor = new_i2c(&[
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
         I2cTrans::write(
             ACCEL_ADDR,
             vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50],
@@ -59,7 +60,7 @@ fn can_read_temperature_i2c() {
     ]);
 
     sensor
-        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz50)
         .unwrap();
     let data = sensor.temperature().unwrap();
 
@@ -74,17 +75,18 @@ fn can_read_temperature_i2c() {
 fn can_read_temperature_spi() {
     let mut sensor = new_spi_accel(
         &[
+            SpiTrans::write(vec![Register::CTRL_REG4_A, 0]),
             SpiTrans::write(vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50]),
             SpiTrans::transfer(
                 vec![Register::OUT_TEMP_L_A | BF::SPI_RW | BF::SPI_MS, 0, 0],
                 vec![0, 0x10, 0x20],
             ),
         ],
-        default_cs_n(2),
+        default_cs_n(3),
     );
 
     sensor
-        .set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50)
+        .set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz50)
         .unwrap();
     let data = sensor.temperature().unwrap();
 
