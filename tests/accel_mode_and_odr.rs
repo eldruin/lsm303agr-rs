@@ -75,6 +75,41 @@ fn incompatible_accel_mode() {
 }
 
 #[test]
+fn change_mode_and_odr_normal_low_high() {
+    let mut sensor = new_i2c(&[
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![Register::CTRL_REG1_A, 2 << 4 | DEFAULT_CTRL_REG1_A],
+        ),
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![
+                Register::CTRL_REG1_A,
+                BF::LP_EN | 2 << 4 | DEFAULT_CTRL_REG1_A,
+            ],
+        ),
+        I2cTrans::write(
+            ACCEL_ADDR,
+            vec![Register::CTRL_REG1_A, 2 << 4 | DEFAULT_CTRL_REG1_A],
+        ),
+        I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, BF::HR]),
+    ]);
+    sensor
+        .set_accel_mode_and_odr(&mut Delay, Mode::Normal, ODR::Hz10)
+        .unwrap();
+    sensor
+        .set_accel_mode_and_odr(&mut Delay, Mode::LowPower, ODR::Hz10)
+        .unwrap();
+    sensor
+        .set_accel_mode_and_odr(&mut Delay, Mode::HighResolution, ODR::Hz10)
+        .unwrap();
+
+    destroy_i2c(sensor);
+}
+
+#[test]
 fn can_power_down() {
     let mut sensor = new_i2c(&[
         I2cTrans::write(ACCEL_ADDR, vec![Register::CTRL_REG4_A, 0]),
