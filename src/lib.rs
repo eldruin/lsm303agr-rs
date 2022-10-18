@@ -10,8 +10,7 @@
 //! - Accelerometer:
 //!     - Read measured acceleration. See: [`acceleration()`](Lsm303agr::acceleration).
 //!     - Get accelerometer status. See: [`accel_status()`](Lsm303agr::accel_status).
-//!     - Set accelerometer output data rate. See: [`set_accel_odr()`](Lsm303agr::set_accel_odr).
-//!     - Set accelerometer mode. See: [`set_accel_mode()`](Lsm303agr::set_accel_mode).
+//!     - Set accelerometer mode and output data rate. See: [`set_accel_mode_and_odr()`](Lsm303agr::set_accel_mode_and_odr).
 //!     - Set accelerometer scale. See: [`set_accel_scale()`](Lsm303agr::set_accel_scale).
 //!     - Get accelerometer ID. See: [`accelerometer_id()`](Lsm303agr::accelerometer_id).
 //!     - Get temperature sensor status. See: [`temperature_status()`](Lsm303agr::temperature_status).
@@ -22,11 +21,10 @@
 //!     - Get the magnetometer status. See: [`mag_status()`](Lsm303agr::mag_status).
 //!     - Change into continuous/one-shot mode. See: [`into_mag_continuous()`](Lsm303agr::into_mag_continuous).
 //!     - Read measured magnetic field. See: [`magnetic_field()`](Lsm303agr::magnetic_field).
-//!     - Set magnetometer output data rate. See: [`set_mag_odr()`](Lsm303agr::set_mag_odr).
+//!     - Set magnetometer mode and output data rate. See: [`set_mag_mode_and_odr()`](Lsm303agr::set_mag_mode_and_odr).
 //!     - Get magnetometer ID. See: [`magnetometer_id()`](Lsm303agr::magnetometer_id).
 //!     - Enable/disable magnetometer built in offset cancellation. See: [`enable_mag_offset_cancellation()`](Lsm303agr::enable_mag_offset_cancellation).
 //!     - Enable/disable magnetometer low-pass filter. See: [`mag_enable_low_pass_filter()`](Lsm303agr::mag_enable_low_pass_filter).
-//!     - Set magnetometer mode. See: [`set_mag_mode()`](Lsm303agr::set_mag_mode).
 //!
 //! <!-- TODO
 //! [Introductory blog post](TODO)
@@ -74,13 +72,13 @@
 //! ```no_run
 //! # #[cfg(target_os = "linux")] {
 //! use linux_embedded_hal::{Delay, I2cdev};
-//! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
+//! use lsm303agr::{AccelMode, AccelOutputDataRate, Lsm303agr};
 //!
 //! let dev = I2cdev::new("/dev/i2c-1").unwrap();
 //! let mut sensor = Lsm303agr::new_with_i2c(dev);
 //!
 //! sensor.init().unwrap();
-//! sensor.set_accel_odr(&mut Delay, AccelOutputDataRate::Hz10).unwrap();
+//! sensor.set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz10).unwrap();
 //!
 //! loop {
 //!     if sensor.accel_status().unwrap().xyz_new_data() {
@@ -96,7 +94,7 @@
 //! ```no_run
 //! # #[cfg(target_os = "linux")] {
 //! use linux_embedded_hal::{Delay, Spidev, Pin};
-//! use lsm303agr::{AccelOutputDataRate, Lsm303agr};
+//! use lsm303agr::{AccelMode, AccelOutputDataRate, Lsm303agr};
 //!
 //! let dev = Spidev::open("/dev/spidev0.0").unwrap();
 //! let accel_cs = Pin::new(17);
@@ -104,7 +102,7 @@
 //! let mut sensor = Lsm303agr::new_with_spi(dev, accel_cs, mag_cs);
 //!
 //! sensor.init().unwrap();
-//! sensor.set_accel_odr(&mut Delay, AccelOutputDataRate::Hz10).unwrap();
+//! sensor.set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz10).unwrap();
 //!
 //! loop {
 //!     if sensor.accel_status().unwrap().xyz_new_data() {

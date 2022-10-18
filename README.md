@@ -15,8 +15,7 @@ This driver allows you to:
 - Accelerometer:
     - Read measured acceleration. See: `acceleration()`.
     - Get accelerometer status. See: `accel_status()`.
-    - Set accelerometer output data rate. See: `set_accel_odr()`.
-    - Set accelerometer mode. See: `set_accel_mode()`.
+    - Set accelerometer mode and output data rate. See: `set_accel_mode_and_odr()`.
     - Set accelerometer scale. See: `set_accel_scale()`.
     - Get accelerometer ID. See: `accelerometer_id()`.
     - Get temperature sensor status. See: `temperature_status()`.
@@ -27,11 +26,10 @@ This driver allows you to:
     - Get the magnetometer status. See: `mag_status()`.
     - Change into continuous/one-shot mode. See: `into_mag_continuous()`.
     - Read measured magnetic field. See: `magnetic_field()`.
-    - Set magnetometer output data rate. See: `set_mag_odr()`.
+    - Set magnetometer mode and output data rate. See: `set_mag_mode_and_odr()`.
     - Get magnetometer ID. See: `magnetometer_id()`.
     - Enable/disable magnetometer built in offset cancellation. See: `enable_mag_offset_cancellation()`.
     - Enable/disable magnetometer low-pass filter. See: `mag_enable_low_pass_filter()`.
-    - Set magnetometer mode. See: `set_mag_mode()`.
 
 <!-- TODO
 [Introductory blog post]()
@@ -64,13 +62,13 @@ Please find additional examples using hardware in this repository: [driver-examp
 
 ```rust
 use linux_embedded_hal::{Delay, I2cdev};
-use lsm303agr::{AccelOutputDataRate, Lsm303agr};
+use lsm303agr::{AccelMode, AccelOutputDataRate, Lsm303agr};
 
 fn main() {
     let dev = I2cdev::new("/dev/i2c-1").unwrap();
     let mut sensor = Lsm303agr::new_with_i2c(dev);
     sensor.init().unwrap();
-    sensor.set_accel_odr(&mut Delay, AccelOutputDataRate::Hz50).unwrap();
+    sensor.set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz50).unwrap();
     loop {
         if sensor.accel_status().unwrap().xyz_new_data() {
             let data = sensor.acceleration().unwrap();

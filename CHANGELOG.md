@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow enabling/disabling magnetometer low-pass filter.
 - Allow configuring accelerometer FIFO and interrupts.
 - Allow changing magnetometer mode.
+- Combine methods for changing mode and ODR.
 
 ## [0.2.2] - 2021-09-21
 

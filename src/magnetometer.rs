@@ -11,48 +11,30 @@ impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
 {
-    /// Set magnetometer output data rate.
+    /// Set magnetometer power/resolution mode and output data rate.
     ///
     #[doc = include_str!("delay.md")]
-    pub fn set_mag_odr<D: DelayUs<u32>>(
+    pub fn set_mag_mode_and_odr<D: DelayUs<u32>>(
         &mut self,
         delay: &mut D,
+        mode: MagMode,
         odr: MagOutputDataRate,
     ) -> Result<(), Error<CommE, PinE>> {
         let rega = self.cfg_reg_a_m;
 
+        let old_mode = rega.mode();
         let old_odr = rega.odr();
 
-        let rega = rega.with_odr(odr);
+        let rega = rega.with_mode(mode).with_odr(odr);
         self.iface.write_mag_register(rega)?;
         self.cfg_reg_a_m = rega;
 
-        if old_odr != odr && self.cfg_reg_b_m.offset_cancellation() {
+        let offset_cancellation = self.cfg_reg_b_m.offset_cancellation();
+        if old_mode != mode {
+            delay.delay_us(rega.turn_on_time_us(offset_cancellation));
+        } else if old_odr != odr && offset_cancellation {
             // Mode did not change, so only wait for 1/ODR ms.
             delay.delay_us(odr.turn_on_time_us_frac_1());
-        }
-
-        Ok(())
-    }
-
-    /// Set magnetometer power mode.
-    ///
-    #[doc = include_str!("delay.md")]
-    pub fn set_mag_mode<D: DelayUs<u32>>(
-        &mut self,
-        delay: &mut D,
-        mode: MagMode,
-    ) -> Result<(), Error<CommE, PinE>> {
-        let rega = self.cfg_reg_a_m;
-
-        let old_mode = rega.mode();
-
-        let rega = rega.with_mode(mode);
-        self.iface.write_mag_register(rega)?;
-        self.cfg_reg_a_m = rega;
-
-        if old_mode != mode {
-            delay.delay_us(rega.turn_on_time_us(self.cfg_reg_b_m.offset_cancellation()));
         }
 
         Ok(())
