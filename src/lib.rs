@@ -32,28 +32,17 @@
 //!
 //! ## The devices
 //!
-//! The LSM303AGR is an inertial measurement unit (IMU) consisting of a
-//! state-of-the-art 3-axis, low-g accelerometer and a low power 3-axis
-//! gyroscope. It has been designed for low power, high precision 6-axis and
-//! 9-axis applications in mobile phones, tablets, wearable devices, remote
-//! controls, game controllers, head-mounted devices and toys.
+//! The LSM303AGR is an ultralow-power high-performance system-in-package featuring a
+//! 3-axis digital linear acceleration sensor and a 3-axis digital magnetic sensor.
 //!
-//! The LSM303AGR is available in a compact 14-pin 2.5 × 3.0 × 0.83 mm3 LGA
-//! package. When accelerometer and gyroscope are in full operation mode, power
-//! consumption is typically 925 μA, enabling always-on applications in
-//! battery driven devices.
+//! The LSM303AGR has linear acceleration full scales of ±2g/±4g/±8g/±16g and a magnetic field
+//! dynamic range of ±50 gauss. The LSM303AGR includes an I²C serial bus
+//! interface that supports standard, fast mode, fast mode plus, and high-speed
+//! (100 kHz, 400 kHz, 1 MHz, and 3.4 MHz) and an SPI serial standard interface.
 //!
-//! Further Bosch Sensortec sensors, e.g. geomagnetic (BMM150) can be connected
-//! as slave via a secondary I2C interface. In this configuration, the LSM303AGR
-//! controls the data acquisition of the external sensor and the synchronized
-//! data of all sensors is stored the register data and can be additionally
-//! stored in the built-in FIFO.
-//!
-//! Besides the flexible primary interface (I2C or SPI) that is used to connect
-//! to the host, LSM303AGR provides an additional secondary interface. This
-//! secondary interface can be used in SPI mode for OIS (optical image
-//! stabilization) applications in conjunction with camera modules, or in
-//! advanced gaming use cases.
+//! The system can be configured to generate an interrupt signal for free-fall,
+//! motion detection, and magnetic field detection. The magnetic and accelerometer blocks can be
+//! enabled or put into power-down mode separately.
 //!
 //! Documents: [Datasheet](https://www.st.com/resource/en/datasheet/lsm303agr.pdf) - [Application note](https://www.st.com/resource/en/application_note/dm00265383-ultracompact-highperformance-ecompass-module-based-on-the-lsm303agr-stmicroelectronics.pdf)
 //!
