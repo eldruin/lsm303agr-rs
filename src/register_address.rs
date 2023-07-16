@@ -68,7 +68,7 @@ macro_rules! register {
 
 register! {
   /// STATUS_REG_AUX_A
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone, PartialEq)]
   pub struct StatusRegAuxA: 0x07 {
     const TOR = 0b01000000;
     const TDA = 0b00000100;
@@ -86,17 +86,18 @@ impl WhoAmIA {
 
 register! {
   /// TEMP_CFG_REG_A
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct TempCfgRegA: 0x1F {
     const TEMP_EN1 = 0b10000000;
     const TEMP_EN0 = 0b01000000;
 
-    const TEMP_EN = Self::TEMP_EN1.bits | Self::TEMP_EN0.bits;
+    const TEMP_EN = Self::TEMP_EN1.bits() | Self::TEMP_EN0.bits();
   }
 }
 
 register! {
   /// CTRL_REG1_A
+  #[derive(Debug, Copy, Clone)]
   pub struct CtrlReg1A: 0x20 {
     const ODR3 = 0b10000000;
     const ODR2 = 0b01000000;
@@ -107,7 +108,7 @@ register! {
     const YEN  = 0b00000010;
     const XEN  = 0b00000001;
 
-    const ODR = Self::ODR3.bits | Self::ODR2.bits | Self::ODR1.bits | Self::ODR0.bits;
+    const ODR = Self::ODR3.bits() | Self::ODR2.bits() | Self::ODR1.bits() | Self::ODR0.bits();
   }
 }
 
@@ -157,7 +158,7 @@ register! {
 
 register! {
   /// CTRL_REG3_A
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct CtrlReg3A: 0x22 {
     const I1_CLICK   = 0b10000000;
     const I1_AOI1    = 0b01000000;
@@ -197,7 +198,7 @@ impl CtrlReg3A {
 
 register! {
   /// CTRL_REG4_A
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct CtrlReg4A: 0x23 {
     const BDU        = 0b10000000;
     const BLE        = 0b01000000;
@@ -208,8 +209,8 @@ register! {
     const ST0        = 0b00000010;
     const SPI_ENABLE = 0b00000001;
 
-    const FS = Self::FS1.bits | Self::FS0.bits;
-    const ST = Self::ST1.bits | Self::ST0.bits;
+    const FS = Self::FS1.bits() | Self::FS0.bits();
+    const ST = Self::ST1.bits() | Self::ST0.bits();
   }
 }
 
@@ -235,7 +236,7 @@ impl CtrlReg4A {
 
 register! {
   /// CTRL_REG5_A
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct CtrlReg5A: 0x24 {
     const BOOT     = 0b10000000;
     const FIFO_EN  = 0b01000000;
@@ -248,6 +249,7 @@ register! {
 
 register! {
   /// CTRL_REG6_A
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct CtrlReg6A: 0x25 {
     const I2_CLICK_EN = 0b10000000;
     const I2_INT1     = 0b01000000;
@@ -260,12 +262,13 @@ register! {
 
 register! {
   /// STATUS_REG_A
+  #[derive(Debug, Copy, Clone)]
   pub type StatusRegA: 0x27 = StatusFlags;
 }
 
 register! {
   /// FIFO_CTRL_REG_A
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct FifoCtrlRegA: 0x2E {
     const FM1  = 0b10000000;
     const FM0  = 0b01000000;
@@ -276,8 +279,8 @@ register! {
     const FTH1 = 0b00000010;
     const FTH0 = 0b00000001;
 
-    const FM = Self::FM1.bits | Self::FM0.bits;
-    const FTH = Self::FTH4.bits | Self::FTH3.bits | Self::FTH2.bits | Self::FTH1.bits | Self::FTH0.bits;
+    const FM = Self::FM1.bits() | Self::FM0.bits();
+    const FTH = Self::FTH4.bits() | Self::FTH3.bits() | Self::FTH2.bits() | Self::FTH1.bits() | Self::FTH0.bits();
   }
 }
 
@@ -292,8 +295,8 @@ impl FifoCtrlRegA {
     }
 
     pub const fn with_full_threshold(self, n: u8) -> Self {
-        let n = if n > Self::FTH.bits {
-            Self::FTH.bits
+        let n = if n > Self::FTH.bits() {
+            Self::FTH.bits()
         } else {
             n
         };
@@ -304,6 +307,7 @@ impl FifoCtrlRegA {
 
 register! {
   /// FIFO_SRC_REG_A
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct FifoSrcRegA: 0x2F {
     const WTM       = 0b10000000;
     const OVRN_FIFO = 0b01000000;
@@ -318,26 +322,28 @@ register! {
 
 register! {
   /// INT1_CFG_A
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct Int1CfgA: 0x30 {
     const AOI       = 0b10000000;
     const D6        = 0b01000000;
     const ZHIE      = 0b00100000;
-    const ZUPE      = Self::ZHIE.bits;
+    const ZUPE      = Self::ZHIE.bits();
     const ZLIE      = 0b00010000;
-    const ZDOWNE    = Self::ZLIE.bits;
+    const ZDOWNE    = Self::ZLIE.bits();
     const YHIE      = 0b00001000;
-    const YUPE      = Self::YHIE.bits;
+    const YUPE      = Self::YHIE.bits();
     const YLIE      = 0b00000100;
-    const YDOWNE    = Self::YLIE.bits;
+    const YDOWNE    = Self::YLIE.bits();
     const XHIE      = 0b00000010;
-    const XUPE      = Self::XHIE.bits;
+    const XUPE      = Self::XHIE.bits();
     const XLIE      = 0b00000001;
-    const XDOWNE    = Self::XLIE.bits;
+    const XDOWNE    = Self::XLIE.bits();
   }
 }
 
 register! {
   /// INT1_SRC_A
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct Int1SrcA: 0x31 {
     const IA = 0b01000000;
     const ZH = 0b00100000;
@@ -360,6 +366,7 @@ impl WhoAmIM {
 
 register! {
   /// CFG_REG_A_M
+  #[derive(Debug, Copy, Clone)]
   pub struct CfgRegAM: 0x60 {
     const COMP_TEMP_EN = 0b10000000;
     const REBOOT       = 0b01000000;
@@ -370,8 +377,8 @@ register! {
     const MD1          = 0b00000010;
     const MD0          = 0b00000001;
 
-    const ODR = Self::ODR1.bits | Self::ODR0.bits;
-    const MD = Self::MD1.bits | Self::MD0.bits;
+    const ODR = Self::ODR1.bits() | Self::ODR0.bits();
+    const MD = Self::MD1.bits() | Self::MD0.bits();
   }
 }
 
@@ -449,7 +456,7 @@ impl CfgRegAM {
 
 register! {
   /// CFG_REG_B_M
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct CfgRegBM: 0x61 {
     const OFF_CANC_ONE_SHOT = 0b00010000;
     const INT_ON_DATA_OFF   = 0b00001000;
@@ -467,7 +474,7 @@ impl CfgRegBM {
 
 register! {
   /// CFG_REG_C_M
-  #[derive(Default)]
+  #[derive(Debug, Default, Copy, Clone)]
   pub struct CfgRegCM: 0x62 {
     const INT_MAG_PIN = 0b01000000;
     const I2C_DIS     = 0b00100000;

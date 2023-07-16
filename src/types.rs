@@ -486,7 +486,7 @@ impl MagMode {
 }
 
 bitflags! {
-    #[derive(Default)]
+    #[derive(Debug, Default, Copy, Clone, PartialEq)]
     pub struct StatusFlags: u8 {
         const ZYXOR = 0b10000000;
         const ZOR   = 0b01000000;
