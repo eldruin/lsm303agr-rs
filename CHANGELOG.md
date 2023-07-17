@@ -6,18 +6,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.0] - 2023-07-17
+### Added
 - Support temperature sensor.
 - Support magnetometer offset cancellation.
-- [breaking-change] Reduce size of status structs.
-- [breaking-change] Simplify API by using explicit types for each measurement.
-- Minimum supported Rust version has been upgraded to 1.60.0.
-- Pass delay into functions to handle turn-on times.
-- Add explicit types for accelerometer and magnetometer IDs.
 - Allow getting `AccelOutputDataRate` and `MagOutputDataRate` from Hertz.
 - Allow enabling/disabling magnetometer low-pass filter.
 - Allow configuring accelerometer FIFO and interrupts.
 - Allow changing magnetometer mode.
+
+### Changed
+- [breaking-change] Reduce size of status structs.
+- [breaking-change] Simplify API by using explicit types for each measurement.
+- Pass delay into functions to handle turn-on times.
+- Add explicit types for accelerometer and magnetometer IDs.
 - Combine methods for changing mode and ODR.
+- Minimum supported Rust version has been upgraded to 1.60.0.
 
 ## [0.2.2] - 2021-09-21
 
@@ -58,7 +63,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Initial release to crates.io.
 
-[Unreleased]: https://github.com/eldruin/lsm303agr-rs/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/eldruin/lsm303agr-rs/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/eldruin/lsm303agr-rs/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/eldruin/lsm303agr-rs/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/eldruin/lsm303agr-rs/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/eldruin/lsm303agr-rs/compare/v0.1.1...v0.2.0
