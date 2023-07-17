@@ -2,6 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/lsm303agr.svg)](https://crates.io/crates/lsm303agr)
 [![Docs](https://docs.rs/lsm303agr/badge.svg)](https://docs.rs/lsm303agr)
+![Minimum Supported Rust Version](https://img.shields.io/badge/rustc-1.60+-blue.svg)
 [![Build Status](https://github.com/eldruin/lsm303agr-rs/workflows/Build/badge.svg)](https://github.com/eldruin/lsm303agr-rs/actions?query=workflow%3ABuild)
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/lsm303agr-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/lsm303agr-rs?branch=master)
 
