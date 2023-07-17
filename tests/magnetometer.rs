@@ -43,7 +43,7 @@ fn can_change_mode() {
         // Set high-resolution mode
         I2cTrans::write(
             MAG_ADDR,
-            vec![Register::CFG_REG_A_M, DEFAULT_CFG_REG_A_M | 0b00000000],
+            vec![Register::CFG_REG_A_M, DEFAULT_CFG_REG_A_M],
         ),
     ]);
     assert_eq!(sensor.get_mag_mode(), MagMode::HighResolution);

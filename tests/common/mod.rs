@@ -84,8 +84,8 @@ pub fn default_cs_n(n: usize) -> PinMock {
         &[PinTrans::set(PinState::Low), PinTrans::set(PinState::High)]
             .iter()
             .cycle()
-            .cloned()
             .take(n * 2)
+            .cloned()
             .collect::<Vec<_>>(),
     )
 }

@@ -100,9 +100,9 @@ macro_rules! can_get_i2c {
 mod can_get_i2c {
     use super::*;
 
-    can_get_i2c!(low_power_2g,        LowPower,       G2,  512 * 1, 1024 * 1, 1536 * 1);
-    can_get_i2c!(high_resolution_2g,  HighResolution, G2,  513 * 1, 1027 * 1, 1541 * 1);
-    can_get_i2c!(normal_2g,           Normal,         G2,  512 * 1, 1024 * 1, 1540 * 1);
+    can_get_i2c!(low_power_2g,        LowPower,       G2,  512    , 1024    , 1536);
+    can_get_i2c!(high_resolution_2g,  HighResolution, G2,  513    , 1027    , 1541);
+    can_get_i2c!(normal_2g,           Normal,         G2,  512    , 1024    , 1540);
     can_get_i2c!(low_power_4g,        LowPower,       G4,  512 * 2, 1024 * 2, 1536 * 2);
     can_get_i2c!(high_resolution_4g,  HighResolution, G4,  513 * 2, 1027 * 2, 1541 * 2);
     can_get_i2c!(normal_4g,           Normal,         G4,  512 * 2, 1024 * 2, 1540 * 2);
