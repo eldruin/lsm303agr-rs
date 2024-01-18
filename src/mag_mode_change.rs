@@ -3,14 +3,14 @@ use crate::{
     mode, Error, Lsm303agr, ModeChangeError, PhantomData,
 };
 
-impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
+impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Change the magnetometer to continuous measurement mode
     pub fn into_mag_continuous(
         mut self,
-    ) -> Result<Lsm303agr<DI, mode::MagContinuous>, ModeChangeError<CommE, PinE, Self>> {
+    ) -> Result<Lsm303agr<DI, mode::MagContinuous>, ModeChangeError<CommE, Self>> {
         let cfg = self.cfg_reg_a_m.continuous_mode();
         match self.iface.write_mag_register(cfg) {
             Err(error) => Err(ModeChangeError { error, dev: self }),
@@ -32,9 +32,9 @@ where
     }
 }
 
-impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagContinuous>
+impl<DI, CommE> Lsm303agr<DI, mode::MagContinuous>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Change the magnetometer to one-shot mode
     ///
@@ -42,7 +42,7 @@ where
     /// is started.
     pub fn into_mag_one_shot(
         mut self,
-    ) -> Result<Lsm303agr<DI, mode::MagOneShot>, ModeChangeError<CommE, PinE, Self>> {
+    ) -> Result<Lsm303agr<DI, mode::MagOneShot>, ModeChangeError<CommE, Self>> {
         let cfg = self.cfg_reg_a_m.idle_mode();
         match self.iface.write_mag_register(cfg) {
             Err(error) => Err(ModeChangeError { error, dev: self }),

@@ -82,13 +82,12 @@
 //!
 //! ```no_run
 //! # #[cfg(target_os = "linux")] {
-//! use linux_embedded_hal::{Delay, Spidev, Pin};
+//! use linux_embedded_hal::{Delay, SpidevDevice};
 //! use lsm303agr::{AccelMode, AccelOutputDataRate, Lsm303agr};
 //!
-//! let dev = Spidev::open("/dev/spidev0.0").unwrap();
-//! let accel_cs = Pin::new(17);
-//! let mag_cs = Pin::new(27);
-//! let mut sensor = Lsm303agr::new_with_spi(dev, accel_cs, mag_cs);
+//! let accel_dev = SpidevDevice::open("/dev/spidev0.0").unwrap();
+//! let mag_dev = SpidevDevice::open("/dev/spidev0.1").unwrap();
+//! let mut sensor = Lsm303agr::new_with_spi(accel_dev, mag_dev);
 //!
 //! sensor.init().unwrap();
 //! sensor.set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz10).unwrap();
@@ -145,6 +144,6 @@ mod private {
     use crate::interface;
     pub trait Sealed {}
 
-    impl<SPI, CSXL, CSMAG> Sealed for interface::SpiInterface<SPI, CSXL, CSMAG> {}
+    impl<SPIXL, SPIMAG> Sealed for interface::SpiInterface<SPIXL, SPIMAG> {}
     impl<I2C> Sealed for interface::I2cInterface<I2C> {}
 }

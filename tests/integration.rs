@@ -1,11 +1,9 @@
 mod common;
 use crate::common::{
-    default_cs, default_cs_n, destroy_i2c, destroy_spi, new_i2c, new_spi, new_spi_accel,
-    new_spi_mag, BitFlags as BF, Register, ACCEL_ADDR, MAG_ADDR,
+    destroy_i2c, destroy_spi, new_i2c, new_spi, new_spi_accel, new_spi_mag, BitFlags as BF,
+    Register, ACCEL_ADDR, MAG_ADDR,
 };
-use embedded_hal_mock::{
-    i2c::Transaction as I2cTrans, pin::Mock as PinMock, spi::Transaction as SpiTrans,
-};
+use embedded_hal_mock::eh1::{i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans};
 
 #[test]
 fn can_create_and_destroy_i2c() {
@@ -15,7 +13,7 @@ fn can_create_and_destroy_i2c() {
 
 #[test]
 fn can_create_and_destroy_spi() {
-    let sensor = new_spi_accel(&[], PinMock::new(&[]));
+    let sensor = new_spi_accel(&[]);
     destroy_spi(sensor);
 }
 
@@ -86,13 +84,11 @@ fn i2c_mag_id_is_correct() {
 #[test]
 fn spi_acc_id_is_not_correct() {
     let acc_id = 0xAB;
-    let mut sensor = new_spi_accel(
-        &[SpiTrans::transfer(
-            vec![BF::SPI_RW | Register::WHO_AM_I_A, 0],
-            vec![0, acc_id],
-        )],
-        default_cs(),
-    );
+    let mut sensor = new_spi_accel(&[
+        SpiTrans::transaction_start(),
+        SpiTrans::transfer_in_place(vec![BF::SPI_RW | Register::WHO_AM_I_A, 0], vec![0, acc_id]),
+        SpiTrans::transaction_end(),
+    ]);
     let id = sensor.accelerometer_id().unwrap();
 
     assert_eq!(id.raw(), acc_id);
@@ -104,13 +100,11 @@ fn spi_acc_id_is_not_correct() {
 #[test]
 fn spi_acc_id_is_correct() {
     let acc_id = 0x33;
-    let mut sensor = new_spi_accel(
-        &[SpiTrans::transfer(
-            vec![BF::SPI_RW | Register::WHO_AM_I_A, 0],
-            vec![0, acc_id],
-        )],
-        default_cs(),
-    );
+    let mut sensor = new_spi_accel(&[
+        SpiTrans::transaction_start(),
+        SpiTrans::transfer_in_place(vec![BF::SPI_RW | Register::WHO_AM_I_A, 0], vec![0, acc_id]),
+        SpiTrans::transaction_end(),
+    ]);
     let id = sensor.accelerometer_id().unwrap();
 
     assert_eq!(id.raw(), acc_id);
@@ -122,13 +116,11 @@ fn spi_acc_id_is_correct() {
 #[test]
 fn spi_mag_id_is_not_correct() {
     let mag_id = 0xAB;
-    let mut sensor = new_spi_mag(
-        &[SpiTrans::transfer(
-            vec![BF::SPI_RW | Register::WHO_AM_I_M, 0],
-            vec![0, mag_id],
-        )],
-        default_cs(),
-    );
+    let mut sensor = new_spi_mag(&[
+        SpiTrans::transaction_start(),
+        SpiTrans::transfer_in_place(vec![BF::SPI_RW | Register::WHO_AM_I_M, 0], vec![0, mag_id]),
+        SpiTrans::transaction_end(),
+    ]);
     let id = sensor.magnetometer_id().unwrap();
 
     assert_eq!(id.raw(), mag_id);
@@ -140,13 +132,11 @@ fn spi_mag_id_is_not_correct() {
 #[test]
 fn spi_mag_id_is_correct() {
     let mag_id = 0x40;
-    let mut sensor = new_spi_mag(
-        &[SpiTrans::transfer(
-            vec![BF::SPI_RW | Register::WHO_AM_I_M, 0],
-            vec![0, mag_id],
-        )],
-        default_cs(),
-    );
+    let mut sensor = new_spi_mag(&[
+        SpiTrans::transaction_start(),
+        SpiTrans::transfer_in_place(vec![BF::SPI_RW | Register::WHO_AM_I_M, 0], vec![0, mag_id]),
+        SpiTrans::transaction_end(),
+    ]);
     let id = sensor.magnetometer_id().unwrap();
 
     assert_eq!(id.raw(), mag_id);
@@ -173,12 +163,18 @@ fn can_init_i2c() {
 fn can_init_spi() {
     let mut sensor = new_spi(
         &[
-            SpiTrans::write(vec![Register::CTRL_REG4_A, BF::ACCEL_BDU]),
-            SpiTrans::write(vec![Register::TEMP_CFG_REG_A, BF::TEMP_EN1 | BF::TEMP_EN0]),
-            SpiTrans::write(vec![Register::CFG_REG_C_M, BF::MAG_BDU]),
+            SpiTrans::transaction_start(),
+            SpiTrans::write_vec(vec![Register::CTRL_REG4_A, BF::ACCEL_BDU]),
+            SpiTrans::transaction_end(),
+            SpiTrans::transaction_start(),
+            SpiTrans::write_vec(vec![Register::TEMP_CFG_REG_A, BF::TEMP_EN1 | BF::TEMP_EN0]),
+            SpiTrans::transaction_end(),
         ],
-        default_cs_n(2),
-        default_cs(),
+        &[
+            SpiTrans::transaction_start(),
+            SpiTrans::write_vec(vec![Register::CFG_REG_C_M, BF::MAG_BDU]),
+            SpiTrans::transaction_end(),
+        ],
     );
     sensor.init().unwrap();
     destroy_spi(sensor);

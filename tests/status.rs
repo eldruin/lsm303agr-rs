@@ -1,6 +1,6 @@
 mod common;
 use crate::common::{destroy_i2c, new_i2c, BitFlags as BF, Register, ACCEL_ADDR, MAG_ADDR};
-use embedded_hal_mock::i2c::Transaction as I2cTrans;
+use embedded_hal_mock::eh1::i2c::Transaction as I2cTrans;
 
 macro_rules! status_eq {
     ($st:expr, $xyz_overrun:expr, $x_overrun:expr, $y_overrun:expr, $z_overrun:expr,

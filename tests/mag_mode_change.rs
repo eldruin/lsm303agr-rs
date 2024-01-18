@@ -1,6 +1,6 @@
 mod common;
 use crate::common::{destroy_i2c, new_i2c, Register, MAG_ADDR};
-use embedded_hal_mock::i2c::Transaction as I2cTrans;
+use embedded_hal_mock::eh1::i2c::Transaction as I2cTrans;
 
 #[test]
 fn can_change_into_continuous() {
