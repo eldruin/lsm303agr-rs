@@ -1,10 +1,10 @@
 mod common;
 use crate::common::{
-    default_cs_n, destroy_i2c, destroy_spi, new_i2c, new_spi_accel, BitFlags as BF, Register,
-    ACCEL_ADDR, DEFAULT_CTRL_REG1_A, HZ50,
+    destroy_i2c, destroy_spi, new_i2c, new_spi_accel, BitFlags as BF, Register, ACCEL_ADDR,
+    DEFAULT_CTRL_REG1_A, HZ50,
 };
-use embedded_hal_mock::{
-    delay::MockNoop as Delay, i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans,
+use embedded_hal_mock::eh1::{
+    delay::NoopDelay as Delay, i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans,
 };
 use lsm303agr::{AccelMode, AccelOutputDataRate, AccelScale};
 
@@ -240,25 +240,28 @@ fn can_get_10_bit_data_i2c() {
 
 #[test]
 fn can_get_10_bit_data_spi() {
-    let mut sensor = new_spi_accel(
-        &[
-            SpiTrans::write(vec![Register::CTRL_REG4_A, 0]),
-            SpiTrans::write(vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50]),
-            SpiTrans::transfer(
-                vec![
-                    Register::OUT_X_L_A | BF::SPI_RW | BF::SPI_MS,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                ],
-                vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
-            ),
-        ],
-        default_cs_n(3),
-    );
+    let mut sensor = new_spi_accel(&[
+        SpiTrans::transaction_start(),
+        SpiTrans::write_vec(vec![Register::CTRL_REG4_A, 0]),
+        SpiTrans::transaction_end(),
+        SpiTrans::transaction_start(),
+        SpiTrans::write_vec(vec![Register::CTRL_REG1_A, DEFAULT_CTRL_REG1_A | HZ50]),
+        SpiTrans::transaction_end(),
+        SpiTrans::transaction_start(),
+        SpiTrans::transfer_in_place(
+            vec![
+                Register::OUT_X_L_A | BF::SPI_RW | BF::SPI_MS,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ],
+            vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+        ),
+        SpiTrans::transaction_end(),
+    ]);
     sensor
         .set_accel_mode_and_odr(&mut Delay, AccelMode::Normal, AccelOutputDataRate::Hz50)
         .unwrap();

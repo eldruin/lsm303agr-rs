@@ -2,7 +2,7 @@ mod common;
 use crate::common::{
     destroy_i2c, new_i2c, BitFlags as BF, Register, ACCEL_ADDR, DEFAULT_CTRL_REG1_A,
 };
-use embedded_hal_mock::{delay::MockNoop as Delay, i2c::Transaction as I2cTrans};
+use embedded_hal_mock::eh1::{delay::NoopDelay as Delay, i2c::Transaction as I2cTrans};
 use lsm303agr::{AccelMode as Mode, AccelOutputDataRate as ODR, FifoMode, Interrupt};
 
 macro_rules! low_pwr {

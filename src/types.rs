@@ -4,20 +4,24 @@ use crate::register_address::{RegRead, StatusRegAuxA, WhoAmIA, WhoAmIM};
 
 /// All possible errors in this crate
 #[derive(Debug)]
-pub enum Error<CommE, PinE> {
+pub enum Error<CommE> {
     /// I²C / SPI communication error
     Comm(CommE),
-    /// Chip-select pin error (SPI)
-    Pin(PinE),
     /// Invalid input data provided
     InvalidInputData,
 }
 
+impl<CommE> From<CommE> for Error<CommE> {
+    fn from(e: CommE) -> Self {
+        Self::Comm(e)
+    }
+}
+
 /// All possible errors in this crate
 #[derive(Debug)]
-pub struct ModeChangeError<CommE, PinE, DEV> {
+pub struct ModeChangeError<CommE, DEV> {
     /// I²C / SPI communication error
-    pub error: Error<CommE, PinE>,
+    pub error: Error<CommE>,
     /// Original device without mode changed
     pub dev: DEV,
 }

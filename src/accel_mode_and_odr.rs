@@ -1,4 +1,4 @@
-use embedded_hal::blocking::delay::DelayUs;
+use embedded_hal::delay::DelayNs;
 
 use crate::{
     interface::{ReadData, WriteData},
@@ -6,9 +6,9 @@ use crate::{
     AccelMode, AccelOutputDataRate, AccelScale, Error, Lsm303agr,
 };
 
-impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
+impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Set accelerometer power/resolution mode and output data rate.
     ///
@@ -16,12 +16,12 @@ where
     /// the given output data rate.
     ///
     #[doc = include_str!("delay.md")]
-    pub fn set_accel_mode_and_odr<D: DelayUs<u32>>(
+    pub fn set_accel_mode_and_odr<D: DelayNs>(
         &mut self,
         delay: &mut D,
         mode: AccelMode,
         odr: impl Into<Option<AccelOutputDataRate>>,
-    ) -> Result<(), Error<CommE, PinE>> {
+    ) -> Result<(), Error<CommE>> {
         let odr = odr.into();
 
         check_accel_odr_is_compatible_with_mode(odr, mode)?;
@@ -87,7 +87,7 @@ where
     /// This changes the scale at which the acceleration is read.
     /// `AccelScale::G2` for example can return values between -2g and +2g
     /// where g is the gravity of the earth (~9.82 m/s²).
-    pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE, PinE>> {
+    pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE>> {
         let reg4 = self.ctrl_reg4_a.with_scale(scale);
         self.iface.write_accel_register(reg4)?;
         self.ctrl_reg4_a = reg4;
@@ -100,10 +100,10 @@ where
     }
 }
 
-fn check_accel_odr_is_compatible_with_mode<CommE, PinE>(
+fn check_accel_odr_is_compatible_with_mode<CommE>(
     odr: Option<AccelOutputDataRate>,
     mode: AccelMode,
-) -> Result<(), Error<CommE, PinE>> {
+) -> Result<(), Error<CommE>> {
     match (odr, mode) {
         (None, AccelMode::PowerDown) => Ok(()),
         (None, _) => Err(Error::InvalidInputData),
@@ -126,27 +126,27 @@ mod accel_odr_mode_tests {
 
     macro_rules! compatible {
         ($odr:ident, $power:ident) => {
-            check_accel_odr_is_compatible_with_mode::<(), ()>(Some(ODR::$odr), AccelMode::$power)
+            check_accel_odr_is_compatible_with_mode::<()>(Some(ODR::$odr), AccelMode::$power)
                 .unwrap();
         };
     }
 
     macro_rules! not_compatible {
         ($odr:ident, $power:ident) => {
-            check_accel_odr_is_compatible_with_mode::<(), ()>(Some(ODR::$odr), AccelMode::$power)
+            check_accel_odr_is_compatible_with_mode::<()>(Some(ODR::$odr), AccelMode::$power)
                 .expect_err("Should have returned error");
         };
     }
 
     macro_rules! none_odr_compatible {
         ($power:ident) => {
-            check_accel_odr_is_compatible_with_mode::<(), ()>(None, AccelMode::$power).unwrap();
+            check_accel_odr_is_compatible_with_mode::<()>(None, AccelMode::$power).unwrap();
         };
     }
 
     macro_rules! not_none_odr_compatible {
         ($power:ident) => {
-            check_accel_odr_is_compatible_with_mode::<(), ()>(None, AccelMode::$power)
+            check_accel_odr_is_compatible_with_mode::<()>(None, AccelMode::$power)
                 .expect_err("Shout not be compatible");
         };
     }

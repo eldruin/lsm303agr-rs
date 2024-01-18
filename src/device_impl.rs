@@ -36,14 +36,13 @@ impl<I2C, MODE> Lsm303agr<I2cInterface<I2C>, MODE> {
     }
 }
 
-impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneShot> {
+impl<SPIXL, SPIMAG> Lsm303agr<SpiInterface<SPIXL, SPIMAG>, mode::MagOneShot> {
     /// Create new instance of the LSM303AGR device communicating through SPI.
-    pub fn new_with_spi(spi: SPI, chip_select_accel: CSXL, chip_select_mag: CSMAG) -> Self {
+    pub fn new_with_spi(spi_accel: SPIXL, spi_mag: SPIMAG) -> Self {
         Lsm303agr {
             iface: SpiInterface {
-                spi,
-                cs_xl: chip_select_accel,
-                cs_mag: chip_select_mag,
+                spi_xl: spi_accel,
+                spi_mag,
             },
             ctrl_reg1_a: CtrlReg1A::default(),
             ctrl_reg3_a: CtrlReg3A::default(),
@@ -60,26 +59,26 @@ impl<SPI, CSXL, CSMAG> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, mode::MagOneSho
     }
 }
 
-impl<SPI, CSXL, CSMAG, MODE> Lsm303agr<SpiInterface<SPI, CSXL, CSMAG>, MODE> {
+impl<SPIXL, SPIMAG, MODE> Lsm303agr<SpiInterface<SPIXL, SPIMAG>, MODE> {
     /// Destroy driver instance, return SPI bus instance and chip select pin.
-    pub fn destroy(self) -> (SPI, CSXL, CSMAG) {
-        (self.iface.spi, self.iface.cs_xl, self.iface.cs_mag)
+    pub fn destroy(self) -> (SPIXL, SPIMAG) {
+        (self.iface.spi_xl, self.iface.spi_mag)
     }
 }
 
-impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
+impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Initialize registers
-    pub fn init(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn init(&mut self) -> Result<(), Error<CommE>> {
         self.acc_enable_temp()?; // Also enables BDU.
         self.mag_enable_bdu()
     }
 
     /// Enable block data update for accelerometer.
     #[inline]
-    fn acc_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
+    fn acc_enable_bdu(&mut self) -> Result<(), Error<CommE>> {
         let reg4 = self.ctrl_reg4_a | CtrlReg4A::BDU;
         self.iface.write_accel_register(reg4)?;
         self.ctrl_reg4_a = reg4;
@@ -89,7 +88,7 @@ where
 
     /// Enable the temperature sensor.
     #[inline]
-    fn acc_enable_temp(&mut self) -> Result<(), Error<CommE, PinE>> {
+    fn acc_enable_temp(&mut self) -> Result<(), Error<CommE>> {
         self.acc_enable_bdu()?;
 
         let temp_cfg_reg = self.temp_cfg_reg_a | TempCfgRegA::TEMP_EN;
@@ -101,7 +100,7 @@ where
 
     /// Enable block data update for magnetometer.
     #[inline]
-    fn mag_enable_bdu(&mut self) -> Result<(), Error<CommE, PinE>> {
+    fn mag_enable_bdu(&mut self) -> Result<(), Error<CommE>> {
         let regc = self.cfg_reg_c_m | CfgRegCM::BDU;
         self.iface.write_mag_register(regc)?;
         self.cfg_reg_c_m = regc;
@@ -112,7 +111,7 @@ where
     /// Set the accelerometer FIFO mode and full threshold.
     ///
     /// The threshold is clamped to \[0, 31\].
-    pub fn acc_set_fifo_mode(&mut self, mode: FifoMode, fth: u8) -> Result<(), Error<CommE, PinE>> {
+    pub fn acc_set_fifo_mode(&mut self, mode: FifoMode, fth: u8) -> Result<(), Error<CommE>> {
         let mut reg5 = self.ctrl_reg5_a;
         reg5.set(CtrlReg5A::FIFO_EN, mode != FifoMode::Bypass);
         self.iface.write_accel_register(reg5)?;
@@ -129,7 +128,7 @@ where
     }
 
     /// Enable accelerometer interrupt.
-    pub fn acc_enable_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Error<CommE, PinE>> {
+    pub fn acc_enable_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Error<CommE>> {
         let reg3 = self.ctrl_reg3_a.with_interrupt(interrupt);
         self.iface.write_accel_register(reg3)?;
         self.ctrl_reg3_a = reg3;
@@ -138,10 +137,7 @@ where
     }
 
     /// Disable accelerometer interrupt.
-    pub fn acc_disable_interrupt(
-        &mut self,
-        interrupt: Interrupt,
-    ) -> Result<(), Error<CommE, PinE>> {
+    pub fn acc_disable_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Error<CommE>> {
         let reg3 = self.ctrl_reg3_a.without_interrupt(interrupt);
         self.iface.write_accel_register(reg3)?;
         self.ctrl_reg3_a = reg3;
@@ -150,7 +146,7 @@ where
     }
 
     /// Configure the DRDY pin as a digital output.
-    pub fn mag_enable_int(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn mag_enable_int(&mut self) -> Result<(), Error<CommE>> {
         let regc = self.cfg_reg_c_m | CfgRegCM::INT_MAG;
         self.iface.write_mag_register(regc)?;
         self.cfg_reg_c_m = regc;
@@ -159,7 +155,7 @@ where
     }
 
     /// Enable magnetometer low-pass filter.
-    pub fn mag_enable_low_pass_filter(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn mag_enable_low_pass_filter(&mut self) -> Result<(), Error<CommE>> {
         let regb = self.cfg_reg_b_m.union(CfgRegBM::LPF);
         self.iface.write_mag_register(regb)?;
         self.cfg_reg_b_m = regb;
@@ -168,7 +164,7 @@ where
     }
 
     /// Disable magnetometer low-pass filter.
-    pub fn mag_disable_low_pass_filter(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn mag_disable_low_pass_filter(&mut self) -> Result<(), Error<CommE>> {
         let regb = self.cfg_reg_b_m.difference(CfgRegBM::LPF);
         self.iface.write_mag_register(regb)?;
         self.cfg_reg_b_m = regb;
@@ -177,14 +173,14 @@ where
     }
 
     /// Accelerometer status
-    pub fn accel_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
+    pub fn accel_status(&mut self) -> Result<Status, Error<CommE>> {
         self.iface
             .read_accel_register::<StatusRegA>()
             .map(Status::new)
     }
 
     /// Get measured acceleration.
-    pub fn acceleration(&mut self) -> Result<Acceleration, Error<CommE, PinE>> {
+    pub fn acceleration(&mut self) -> Result<Acceleration, Error<CommE>> {
         let (x, y, z) = self.iface.read_accel_3_double_registers::<Acceleration>()?;
 
         Ok(Acceleration {
@@ -197,29 +193,29 @@ where
     }
 
     /// Magnetometer status
-    pub fn mag_status(&mut self) -> Result<Status, Error<CommE, PinE>> {
+    pub fn mag_status(&mut self) -> Result<Status, Error<CommE>> {
         self.iface
             .read_mag_register::<StatusRegM>()
             .map(Status::new)
     }
 
     /// Get the accelerometer device ID.
-    pub fn accelerometer_id(&mut self) -> Result<AccelerometerId, Error<CommE, PinE>> {
+    pub fn accelerometer_id(&mut self) -> Result<AccelerometerId, Error<CommE>> {
         self.iface.read_accel_register::<WhoAmIA>()
     }
 
     /// Get the magnetometer device ID.
-    pub fn magnetometer_id(&mut self) -> Result<MagnetometerId, Error<CommE, PinE>> {
+    pub fn magnetometer_id(&mut self) -> Result<MagnetometerId, Error<CommE>> {
         self.iface.read_mag_register::<WhoAmIM>()
     }
 
     /// Get measured temperature.
-    pub fn temperature(&mut self) -> Result<Temperature, Error<CommE, PinE>> {
+    pub fn temperature(&mut self) -> Result<Temperature, Error<CommE>> {
         self.iface.read_accel_double_register::<Temperature>()
     }
 
     /// Temperature sensor status
-    pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE, PinE>> {
+    pub fn temperature_status(&mut self) -> Result<TemperatureStatus, Error<CommE>> {
         self.iface
             .read_accel_register::<StatusRegAuxA>()
             .map(TemperatureStatus::new)

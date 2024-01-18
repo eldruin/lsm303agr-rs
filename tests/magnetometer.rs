@@ -4,11 +4,8 @@ use crate::common::{
     destroy_i2c, destroy_spi, new_i2c, new_spi_mag, BitFlags as BF, Register, DEFAULT_CFG_REG_A_M,
     MAG_ADDR,
 };
-use embedded_hal_mock::{
-    delay::MockNoop as Delay,
-    i2c::Transaction as I2cTrans,
-    pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
-    spi::Transaction as SpiTrans,
+use embedded_hal_mock::eh1::{
+    delay::NoopDelay as Delay, i2c::Transaction as I2cTrans, spi::Transaction as SpiTrans,
 };
 use lsm303agr::{MagMode, MagOutputDataRate as ODR};
 
@@ -130,29 +127,25 @@ fn can_take_continuous_measurement_i2c() {
 
 #[test]
 fn can_take_continuous_measurement_spi() {
-    let sensor = new_spi_mag(
-        &[
-            SpiTrans::write(vec![Register::CFG_REG_A_M, 0]),
-            SpiTrans::transfer(
-                vec![
-                    Register::OUTX_L_REG_M | BF::SPI_MS | BF::SPI_RW,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                ],
-                vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
-            ),
-        ],
-        PinMock::new(&[
-            PinTrans::set(PinState::Low),
-            PinTrans::set(PinState::High),
-            PinTrans::set(PinState::Low),
-            PinTrans::set(PinState::High),
-        ]),
-    );
+    let sensor = new_spi_mag(&[
+        SpiTrans::transaction_start(),
+        SpiTrans::write_vec(vec![Register::CFG_REG_A_M, 0]),
+        SpiTrans::transaction_end(),
+        SpiTrans::transaction_start(),
+        SpiTrans::transfer_in_place(
+            vec![
+                Register::OUTX_L_REG_M | BF::SPI_MS | BF::SPI_RW,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ],
+            vec![0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60],
+        ),
+        SpiTrans::transaction_end(),
+    ]);
     let mut sensor = sensor.into_mag_continuous().ok().unwrap();
     let data = sensor.magnetic_field().unwrap();
 

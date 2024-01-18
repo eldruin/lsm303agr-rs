@@ -13,15 +13,15 @@ documentation = "https://docs.rs/lsm303agr"
 edition = "2018"
 
 [dependencies]
-embedded-hal = "0.2.7"
+embedded-hal = "1.0.0"
 nb = "1.1"
 bitflags = "2.3.3"
 
 [dev-dependencies]
-embedded-hal-mock = "0.9"
+embedded-hal-mock = "0.10.0"
 
 [target.'cfg(target_os = "linux")'.dev-dependencies]
-linux-embedded-hal = "0.3"
+linux-embedded-hal = "0.4.0"
 
 [profile.release]
 lto = true

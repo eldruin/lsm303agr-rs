@@ -1,4 +1,4 @@
-use embedded_hal::blocking::delay::DelayUs;
+use embedded_hal::delay::DelayNs;
 
 use crate::{
     interface::{ReadData, WriteData},
@@ -7,19 +7,19 @@ use crate::{
     Error, Lsm303agr, MagMode, MagOutputDataRate, MagneticField,
 };
 
-impl<DI, CommE, PinE, MODE> Lsm303agr<DI, MODE>
+impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Set magnetometer power/resolution mode and output data rate.
     ///
     #[doc = include_str!("delay.md")]
-    pub fn set_mag_mode_and_odr<D: DelayUs<u32>>(
+    pub fn set_mag_mode_and_odr<D: DelayNs>(
         &mut self,
         delay: &mut D,
         mode: MagMode,
         odr: MagOutputDataRate,
-    ) -> Result<(), Error<CommE, PinE>> {
+    ) -> Result<(), Error<CommE>> {
         let rega = self.cfg_reg_a_m;
 
         let old_mode = rega.mode();
@@ -46,12 +46,12 @@ where
     }
 }
 
-impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagContinuous>
+impl<DI, CommE> Lsm303agr<DI, mode::MagContinuous>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Get the measured magnetic field.
-    pub fn magnetic_field(&mut self) -> Result<MagneticField, Error<CommE, PinE>> {
+    pub fn magnetic_field(&mut self) -> Result<MagneticField, Error<CommE>> {
         self.iface.read_mag_3_double_registers::<MagneticField>()
     }
 
@@ -60,7 +60,7 @@ where
     /// Offset cancellation is **automatically** managed by the device in **continuous** mode.
     ///
     /// To later disable offset cancellation, use the [`disable_mag_offset_cancellation`](Lsm303agr::disable_mag_offset_cancellation) function
-    pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE>> {
         let reg_b = self.cfg_reg_b_m | CfgRegBM::OFF_CANC;
 
         self.iface.write_mag_register(reg_b)?;
@@ -70,7 +70,7 @@ where
     }
 
     /// Disable the magnetometer's built in offset cancellation.
-    pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE>> {
         let reg_b = self.cfg_reg_b_m & !CfgRegBM::OFF_CANC;
 
         self.iface.write_mag_register(reg_b)?;
@@ -80,12 +80,12 @@ where
     }
 }
 
-impl<DI, CommE, PinE> Lsm303agr<DI, mode::MagOneShot>
+impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
 where
-    DI: ReadData<Error = Error<CommE, PinE>> + WriteData<Error = Error<CommE, PinE>>,
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Get the measured magnetic field.
-    pub fn magnetic_field(&mut self) -> nb::Result<MagneticField, Error<CommE, PinE>> {
+    pub fn magnetic_field(&mut self) -> nb::Result<MagneticField, Error<CommE>> {
         let status = self.mag_status()?;
         if status.xyz_new_data() {
             Ok(self.iface.read_mag_3_double_registers::<MagneticField>()?)
@@ -107,7 +107,7 @@ where
     /// two consecutive measurements H<sub>n</sub> and H<sub>n-1</sub>.
     ///
     /// To later disable offset cancellation, use the [`disable_mag_offset_cancellation`](Lsm303agr::disable_mag_offset_cancellation) function
-    pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn enable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE>> {
         let reg_b = self.cfg_reg_b_m | CfgRegBM::OFF_CANC | CfgRegBM::OFF_CANC_ONE_SHOT;
 
         self.iface.write_mag_register(reg_b)?;
@@ -117,7 +117,7 @@ where
     }
 
     /// Disable the magnetometer's built in offset cancellation.
-    pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE, PinE>> {
+    pub fn disable_mag_offset_cancellation(&mut self) -> Result<(), Error<CommE>> {
         let reg_b = self.cfg_reg_b_m & !(CfgRegBM::OFF_CANC | CfgRegBM::OFF_CANC_ONE_SHOT);
 
         self.iface.write_mag_register(reg_b)?;

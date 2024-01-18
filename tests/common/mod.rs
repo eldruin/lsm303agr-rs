@@ -1,6 +1,5 @@
-use embedded_hal_mock::{
+use embedded_hal_mock::eh1::{
     i2c::{Mock as I2cMock, Transaction as I2cTrans},
-    pin::{Mock as PinMock, State as PinState, Transaction as PinTrans},
     spi::{Mock as SpiMock, Transaction as SpiTrans},
 };
 use lsm303agr::{interface, mode, Lsm303agr};
@@ -74,55 +73,37 @@ impl BitFlags {
 }
 
 #[allow(unused)]
-pub fn default_cs() -> PinMock {
-    default_cs_n(1)
-}
-
-#[allow(unused)]
-pub fn default_cs_n(n: usize) -> PinMock {
-    PinMock::new(
-        &[PinTrans::set(PinState::Low), PinTrans::set(PinState::High)]
-            .iter()
-            .cycle()
-            .take(n * 2)
-            .cloned()
-            .collect::<Vec<_>>(),
-    )
-}
-
-#[allow(unused)]
 pub fn new_spi_accel(
-    transactions: &[SpiTrans],
-    accel_cs: PinMock,
-) -> Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>, mode::MagOneShot> {
-    Lsm303agr::new_with_spi(SpiMock::new(transactions), accel_cs, PinMock::new(&[]))
+    transactions: &[SpiTrans<u8>],
+) -> Lsm303agr<interface::SpiInterface<SpiMock<u8>, SpiMock<u8>>, mode::MagOneShot> {
+    new_spi(transactions, &[])
 }
 
 #[allow(unused)]
 pub fn new_spi_mag(
-    transactions: &[SpiTrans],
-    mag_cs: PinMock,
-) -> Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>, mode::MagOneShot> {
-    Lsm303agr::new_with_spi(SpiMock::new(transactions), PinMock::new(&[]), mag_cs)
+    transactions: &[SpiTrans<u8>],
+) -> Lsm303agr<interface::SpiInterface<SpiMock<u8>, SpiMock<u8>>, mode::MagOneShot> {
+    new_spi(&[], transactions)
 }
 
 #[allow(unused)]
 pub fn new_spi(
-    transactions: &[SpiTrans],
-    accel_cs: PinMock,
-    mag_cs: PinMock,
-) -> Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>, mode::MagOneShot> {
-    Lsm303agr::new_with_spi(SpiMock::new(transactions), accel_cs, mag_cs)
+    accel_transactions: &[SpiTrans<u8>],
+    mag_transactions: &[SpiTrans<u8>],
+) -> Lsm303agr<interface::SpiInterface<SpiMock<u8>, SpiMock<u8>>, mode::MagOneShot> {
+    Lsm303agr::new_with_spi(
+        SpiMock::new(accel_transactions),
+        SpiMock::new(mag_transactions),
+    )
 }
 
 #[allow(unused)]
 pub fn destroy_spi<MODE>(
-    sensor: Lsm303agr<interface::SpiInterface<SpiMock, PinMock, PinMock>, MODE>,
+    sensor: Lsm303agr<interface::SpiInterface<SpiMock<u8>, SpiMock<u8>>, MODE>,
 ) {
-    let (mut spi, mut accel_cs, mut mag_cs) = sensor.destroy();
-    spi.done();
-    accel_cs.done();
-    mag_cs.done();
+    let (mut accel_spi, mut mag_spi) = sensor.destroy();
+    accel_spi.done();
+    mag_spi.done();
 }
 
 #[allow(unused)]

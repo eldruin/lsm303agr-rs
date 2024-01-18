@@ -1,9 +1,6 @@
 //! I2C/SPI interfaces
 
-use embedded_hal::{
-    blocking::{i2c, spi},
-    digital::v2::OutputPin,
-};
+use embedded_hal::{i2c, spi};
 
 use crate::{
     private,
@@ -22,27 +19,28 @@ pub struct I2cInterface<I2C> {
 
 /// SPI interface
 #[derive(Debug)]
-pub struct SpiInterface<SPI, CSXL, CSMAG> {
-    pub(crate) spi: SPI,
-    pub(crate) cs_xl: CSXL,
-    pub(crate) cs_mag: CSMAG,
+pub struct SpiInterface<SPIXL, SPIMAG> {
+    pub(crate) spi_xl: SPIXL,
+    pub(crate) spi_mag: SPIMAG,
 }
 
 /// Write data
 pub trait WriteData: private::Sealed {
     /// Error type
     type Error;
+
     /// Write to an u8 accelerometer register
     fn write_accel_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error>;
+
     /// Write to an u8 magnetometer register
     fn write_mag_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error>;
 }
 
 impl<I2C, E> WriteData for I2cInterface<I2C>
 where
-    I2C: i2c::Write<Error = E>,
+    I2C: i2c::I2c<Error = E>,
 {
-    type Error = Error<E, ()>;
+    type Error = Error<E>;
 
     fn write_accel_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error> {
         let payload: [u8; 2] = [R::ADDR, reg.data()];
@@ -55,34 +53,23 @@ where
     }
 }
 
-impl<SPI, CSXL, CSMAG, CommE, PinE> WriteData for SpiInterface<SPI, CSXL, CSMAG>
+impl<SPIXL, SPIMAG, CommE> WriteData for SpiInterface<SPIXL, SPIMAG>
 where
-    SPI: spi::Write<u8, Error = CommE>,
-    CSXL: OutputPin<Error = PinE>,
-    CSMAG: OutputPin<Error = PinE>,
+    SPIXL: spi::SpiDevice<u8, Error = CommE>,
+    SPIMAG: spi::SpiDevice<u8, Error = CommE>,
 {
-    type Error = Error<CommE, PinE>;
+    type Error = Error<CommE>;
 
     fn write_accel_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error> {
-        self.cs_xl.set_low().map_err(Error::Pin)?;
-
         // note that multiple byte writing needs to set the MS bit
         let payload: [u8; 2] = [R::ADDR, reg.data()];
-        let result = self.spi.write(&payload).map_err(Error::Comm);
-
-        self.cs_xl.set_high().map_err(Error::Pin)?;
-        result
+        self.spi_xl.write(&payload).map_err(Error::Comm)
     }
 
     fn write_mag_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error> {
-        self.cs_mag.set_low().map_err(Error::Pin)?;
-
         // note that multiple byte writing needs to set the MS bit
         let payload: [u8; 2] = [R::ADDR, reg.data()];
-        let result = self.spi.write(&payload).map_err(Error::Comm);
-
-        self.cs_mag.set_high().map_err(Error::Pin)?;
-        result
+        self.spi_mag.write(&payload).map_err(Error::Comm)
     }
 }
 
@@ -90,12 +77,16 @@ where
 pub trait ReadData: private::Sealed {
     /// Error type
     type Error;
+
     /// Read an u8 accelerometer register
     fn read_accel_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error>;
+
     /// Read an u8 magnetometer register
     fn read_mag_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error>;
+
     /// Read an u16 accelerometer register
     fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error>;
+
     /// Read 3 u16 accelerometer registers
     fn read_accel_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
@@ -109,9 +100,9 @@ pub trait ReadData: private::Sealed {
 
 impl<I2C, E> ReadData for I2cInterface<I2C>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c<Error = E>,
 {
-    type Error = Error<E, ()>;
+    type Error = Error<E>;
 
     fn read_accel_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
         self.read_register::<R>(ACCEL_ADDR)
@@ -140,9 +131,9 @@ where
 
 impl<I2C, E> I2cInterface<I2C>
 where
-    I2C: i2c::WriteRead<Error = E>,
+    I2C: i2c::I2c<Error = E>,
 {
-    fn read_register<R: RegRead>(&mut self, address: u8) -> Result<R::Output, Error<E, ()>> {
+    fn read_register<R: RegRead>(&mut self, address: u8) -> Result<R::Output, Error<E>> {
         let mut data = [0];
         self.i2c
             .write_read(address, &[R::ADDR], &mut data)
@@ -154,7 +145,7 @@ where
     fn read_double_register<R: RegRead<u16>>(
         &mut self,
         address: u8,
-    ) -> Result<R::Output, Error<E, ()>> {
+    ) -> Result<R::Output, Error<E>> {
         let mut data = [0; 2];
         self.i2c
             .write_read(address, &[R::ADDR | 0x80], &mut data)
@@ -166,7 +157,7 @@ where
     fn read_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
         address: u8,
-    ) -> Result<R::Output, Error<E, ()>> {
+    ) -> Result<R::Output, Error<E>> {
         let mut data = [0; 6];
         self.i2c
             .write_read(address, &[R::ADDR | 0x80], &mut data)
@@ -180,87 +171,72 @@ where
     }
 }
 
-impl<SPI, CSXL, CSMAG, CommE, PinE> ReadData for SpiInterface<SPI, CSXL, CSMAG>
+impl<SPIXL, SPIMAG, CommE> ReadData for SpiInterface<SPIXL, SPIMAG>
 where
-    SPI: spi::Transfer<u8, Error = CommE>,
-    CSXL: OutputPin<Error = PinE>,
-    CSMAG: OutputPin<Error = PinE>,
+    SPIXL: spi::SpiDevice<u8, Error = CommE>,
+    SPIMAG: spi::SpiDevice<u8, Error = CommE>,
 {
-    type Error = Error<CommE, PinE>;
+    type Error = Error<CommE>;
 
     fn read_accel_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
-        self.cs_xl.set_low().map_err(Error::Pin)?;
-        let result = self.read_register::<R>();
-        self.cs_xl.set_high().map_err(Error::Pin)?;
-        result
+        spi_read_register::<R, _, _>(&mut self.spi_xl)
     }
 
     fn read_mag_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error> {
-        self.cs_mag.set_low().map_err(Error::Pin)?;
-        let result = self.read_register::<R>();
-        self.cs_mag.set_high().map_err(Error::Pin)?;
-        result
+        spi_read_register::<R, _, _>(&mut self.spi_mag)
     }
 
     fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error> {
-        self.cs_xl.set_low().map_err(Error::Pin)?;
-        let result = self.read_double_register::<R>();
-        self.cs_xl.set_high().map_err(Error::Pin)?;
-        result
+        spi_read_double_register::<R, _, _>(&mut self.spi_xl)
     }
 
     fn read_accel_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
     ) -> Result<R::Output, Self::Error> {
-        self.cs_xl.set_low().map_err(Error::Pin)?;
-        let result = self.read_3_double_registers::<R>();
-        self.cs_xl.set_high().map_err(Error::Pin)?;
-        result
+        spi_read_3_double_registers::<R, _, _>(&mut self.spi_xl)
     }
 
     fn read_mag_3_double_registers<R: RegRead<(u16, u16, u16)>>(
         &mut self,
     ) -> Result<R::Output, Self::Error> {
-        self.cs_mag.set_low().map_err(Error::Pin)?;
-        let result = self.read_3_double_registers::<R>();
-        self.cs_mag.set_high().map_err(Error::Pin)?;
-        result
+        spi_read_3_double_registers::<R, _, _>(&mut self.spi_mag)
     }
 }
 
-impl<SPI, CSXL, CSMAG, CommE, PinE> SpiInterface<SPI, CSXL, CSMAG>
-where
-    SPI: spi::Transfer<u8, Error = CommE>,
-    CSXL: OutputPin<Error = PinE>,
-    CSMAG: OutputPin<Error = PinE>,
-{
-    const SPI_RW: u8 = 1 << 7;
-    const SPI_MS: u8 = 1 << 6;
+const SPI_RW: u8 = 1 << 7;
+const SPI_MS: u8 = 1 << 6;
 
-    fn read_register<R: RegRead>(&mut self) -> Result<R::Output, Error<CommE, PinE>> {
-        let mut data = [Self::SPI_RW | R::ADDR, 0];
-        self.spi.transfer(&mut data).map_err(Error::Comm)?;
+fn spi_read_register<R: RegRead, SPI: spi::SpiDevice<u8, Error = CommE>, CommE>(
+    spi: &mut SPI,
+) -> Result<R::Output, Error<CommE>> {
+    let mut data = [SPI_RW | R::ADDR, 0];
+    spi.transfer_in_place(&mut data).map_err(Error::Comm)?;
 
-        Ok(R::from_data(data[1]))
-    }
+    Ok(R::from_data(data[1]))
+}
 
-    fn read_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Error<CommE, PinE>> {
-        let mut data = [Self::SPI_RW | Self::SPI_MS | R::ADDR, 0, 0];
-        self.spi.transfer(&mut data).map_err(Error::Comm)?;
+fn spi_read_double_register<R: RegRead<u16>, SPI: spi::SpiDevice<u8, Error = CommE>, CommE>(
+    spi: &mut SPI,
+) -> Result<R::Output, Error<CommE>> {
+    let mut data = [SPI_RW | SPI_MS | R::ADDR, 0, 0];
+    spi.transfer_in_place(&mut data).map_err(Error::Comm)?;
 
-        Ok(R::from_data(u16::from_le_bytes([data[1], data[2]])))
-    }
+    Ok(R::from_data(u16::from_le_bytes([data[1], data[2]])))
+}
 
-    fn read_3_double_registers<R: RegRead<(u16, u16, u16)>>(
-        &mut self,
-    ) -> Result<R::Output, Error<CommE, PinE>> {
-        let mut data = [Self::SPI_RW | Self::SPI_MS | R::ADDR, 0, 0, 0, 0, 0, 0];
-        self.spi.transfer(&mut data).map_err(Error::Comm)?;
+fn spi_read_3_double_registers<
+    R: RegRead<(u16, u16, u16)>,
+    SPI: spi::SpiDevice<u8, Error = CommE>,
+    CommE,
+>(
+    spi: &mut SPI,
+) -> Result<R::Output, Error<CommE>> {
+    let mut data = [SPI_RW | SPI_MS | R::ADDR, 0, 0, 0, 0, 0, 0];
+    spi.transfer_in_place(&mut data).map_err(Error::Comm)?;
 
-        Ok(R::from_data((
-            u16::from_le_bytes([data[1], data[2]]),
-            u16::from_le_bytes([data[3], data[4]]),
-            u16::from_le_bytes([data[5], data[6]]),
-        )))
-    }
+    Ok(R::from_data((
+        u16::from_le_bytes([data[1], data[2]]),
+        u16::from_le_bytes([data[3], data[4]]),
+        u16::from_le_bytes([data[5], data[6]]),
+    )))
 }
