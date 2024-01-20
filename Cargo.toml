@@ -10,7 +10,7 @@ keywords = ["accelerometer", "magnetometer", "mems", "embedded-hal-driver"]
 categories = ["embedded", "hardware-support", "no-std"]
 homepage = "https://github.com/eldruin/lsm303agr-rs"
 documentation = "https://docs.rs/lsm303agr"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 embedded-hal = "1.0.0"
