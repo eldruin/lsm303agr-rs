@@ -69,14 +69,8 @@ impl<SPIXL, SPIMAG, MODE> Lsm303agr<SpiInterface<SPIXL, SPIMAG>, MODE> {
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where
@@ -149,7 +143,10 @@ where
     }
 
     /// Disable accelerometer interrupt.
-    pub async fn acc_disable_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Error<CommE>> {
+    pub async fn acc_disable_interrupt(
+        &mut self,
+        interrupt: Interrupt,
+    ) -> Result<(), Error<CommE>> {
         let reg3 = self.ctrl_reg3_a.without_interrupt(interrupt);
         self.iface.write_accel_register(reg3).await?;
         self.ctrl_reg3_a = reg3;
@@ -194,7 +191,10 @@ where
 
     /// Get measured acceleration.
     pub async fn acceleration(&mut self) -> Result<Acceleration, Error<CommE>> {
-        let (x, y, z) = self.iface.read_accel_3_double_registers::<Acceleration>().await?;
+        let (x, y, z) = self
+            .iface
+            .read_accel_3_double_registers::<Acceleration>()
+            .await?;
 
         Ok(Acceleration {
             x,

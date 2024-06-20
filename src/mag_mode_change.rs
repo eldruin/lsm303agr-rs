@@ -6,14 +6,8 @@ use crate::{
 };
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
 where
@@ -45,14 +39,8 @@ where
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE> Lsm303agr<DI, mode::MagContinuous>
 where

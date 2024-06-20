@@ -13,14 +13,8 @@ use crate::{
 };
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where
@@ -46,7 +40,9 @@ where
 
         let offset_cancellation = self.cfg_reg_b_m.offset_cancellation();
         if old_mode != mode {
-            delay.delay_us(rega.turn_on_time_us(offset_cancellation)).await;
+            delay
+                .delay_us(rega.turn_on_time_us(offset_cancellation))
+                .await;
         } else if old_odr != odr && offset_cancellation {
             // Mode did not change, so only wait for 1/ODR ms.
             delay.delay_us(odr.turn_on_time_us_frac_1()).await;
@@ -62,14 +58,8 @@ where
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE> Lsm303agr<DI, mode::MagContinuous>
 where
@@ -77,7 +67,9 @@ where
 {
     /// Get the measured magnetic field.
     pub async fn magnetic_field(&mut self) -> Result<MagneticField, Error<CommE>> {
-        self.iface.read_mag_3_double_registers::<MagneticField>().await
+        self.iface
+            .read_mag_3_double_registers::<MagneticField>()
+            .await
     }
 
     /// Enable the magnetometer's built in offset cancellation.
@@ -106,14 +98,8 @@ where
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
 where
@@ -123,7 +109,10 @@ where
     pub async fn magnetic_field(&mut self) -> nb::Result<MagneticField, Error<CommE>> {
         let status = self.mag_status().await?;
         if status.xyz_new_data() {
-            Ok(self.iface.read_mag_3_double_registers::<MagneticField>().await?)
+            Ok(self
+                .iface
+                .read_mag_3_double_registers::<MagneticField>()
+                .await?)
         } else {
             let cfg = self.iface.read_mag_register::<CfgRegAM>().await?;
             if !cfg.is_single_mode() {

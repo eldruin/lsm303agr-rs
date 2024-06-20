@@ -8,14 +8,8 @@ use crate::{
 };
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where

@@ -30,14 +30,8 @@ pub struct SpiInterface<SPIXL, SPIMAG> {
 
 /// Write data
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 pub trait WriteData: private::Sealed {
     /// Error type
@@ -51,14 +45,8 @@ pub trait WriteData: private::Sealed {
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<I2C, E> WriteData for I2cInterface<I2C>
 where
@@ -68,24 +56,24 @@ where
 
     async fn write_accel_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error> {
         let payload: [u8; 2] = [R::ADDR, reg.data()];
-        self.i2c.write(ACCEL_ADDR, &payload).await.map_err(Error::Comm)
+        self.i2c
+            .write(ACCEL_ADDR, &payload)
+            .await
+            .map_err(Error::Comm)
     }
 
     async fn write_mag_register<R: RegWrite>(&mut self, reg: R) -> Result<(), Self::Error> {
         let payload: [u8; 2] = [R::ADDR, reg.data()];
-        self.i2c.write(MAG_ADDR, &payload).await.map_err(Error::Comm)
+        self.i2c
+            .write(MAG_ADDR, &payload)
+            .await
+            .map_err(Error::Comm)
     }
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<SPIXL, SPIMAG, CommE> WriteData for SpiInterface<SPIXL, SPIMAG>
 where
@@ -109,14 +97,8 @@ where
 
 /// Read data
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 pub trait ReadData: private::Sealed {
     /// Error type
@@ -129,7 +111,9 @@ pub trait ReadData: private::Sealed {
     async fn read_mag_register<R: RegRead>(&mut self) -> Result<R::Output, Self::Error>;
 
     /// Read an u16 accelerometer register
-    async fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error>;
+    async fn read_accel_double_register<R: RegRead<u16>>(
+        &mut self,
+    ) -> Result<R::Output, Self::Error>;
 
     /// Read 3 u16 accelerometer registers
     async fn read_accel_3_double_registers<R: RegRead<(u16, u16, u16)>>(
@@ -143,14 +127,8 @@ pub trait ReadData: private::Sealed {
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<I2C, E> ReadData for I2cInterface<I2C>
 where
@@ -166,7 +144,9 @@ where
         self.read_register::<R>(MAG_ADDR).await
     }
 
-    async fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error> {
+    async fn read_accel_double_register<R: RegRead<u16>>(
+        &mut self,
+    ) -> Result<R::Output, Self::Error> {
         self.read_double_register::<R>(ACCEL_ADDR).await
     }
 
@@ -184,14 +164,8 @@ where
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<I2C, E> I2cInterface<I2C>
 where
@@ -200,7 +174,8 @@ where
     async fn read_register<R: RegRead>(&mut self, address: u8) -> Result<R::Output, Error<E>> {
         let mut data = [0];
         self.i2c
-            .write_read(address, &[R::ADDR], &mut data).await
+            .write_read(address, &[R::ADDR], &mut data)
+            .await
             .map_err(Error::Comm)?;
 
         Ok(R::from_data(data[0]))
@@ -212,7 +187,8 @@ where
     ) -> Result<R::Output, Error<E>> {
         let mut data = [0; 2];
         self.i2c
-            .write_read(address, &[R::ADDR | 0x80], &mut data).await
+            .write_read(address, &[R::ADDR | 0x80], &mut data)
+            .await
             .map_err(Error::Comm)?;
 
         Ok(R::from_data(u16::from_le_bytes(data)))
@@ -224,7 +200,8 @@ where
     ) -> Result<R::Output, Error<E>> {
         let mut data = [0; 6];
         self.i2c
-            .write_read(address, &[R::ADDR | 0x80], &mut data).await
+            .write_read(address, &[R::ADDR | 0x80], &mut data)
+            .await
             .map_err(Error::Comm)?;
 
         Ok(R::from_data((
@@ -236,14 +213,8 @@ where
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 impl<SPIXL, SPIMAG, CommE> ReadData for SpiInterface<SPIXL, SPIMAG>
 where
@@ -260,7 +231,9 @@ where
         spi_read_register::<R, _, _>(&mut self.spi_mag).await
     }
 
-    async fn read_accel_double_register<R: RegRead<u16>>(&mut self) -> Result<R::Output, Self::Error> {
+    async fn read_accel_double_register<R: RegRead<u16>>(
+        &mut self,
+    ) -> Result<R::Output, Self::Error> {
         spi_read_double_register::<R, _, _>(&mut self.spi_xl).await
     }
 
@@ -281,52 +254,42 @@ const SPI_RW: u8 = 1 << 7;
 const SPI_MS: u8 = 1 << 6;
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 async fn spi_read_register<R: RegRead, SPI: spi::SpiDevice<u8, Error = CommE>, CommE>(
     spi: &mut SPI,
 ) -> Result<R::Output, Error<CommE>> {
     let mut data = [SPI_RW | R::ADDR, 0];
-    spi.transfer_in_place(&mut data).await.map_err(Error::Comm)?;
+    spi.transfer_in_place(&mut data)
+        .await
+        .map_err(Error::Comm)?;
 
     Ok(R::from_data(data[1]))
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
-async fn spi_read_double_register<R: RegRead<u16>, SPI: spi::SpiDevice<u8, Error = CommE>, CommE>(
+async fn spi_read_double_register<
+    R: RegRead<u16>,
+    SPI: spi::SpiDevice<u8, Error = CommE>,
+    CommE,
+>(
     spi: &mut SPI,
 ) -> Result<R::Output, Error<CommE>> {
     let mut data = [SPI_RW | SPI_MS | R::ADDR, 0, 0];
-    spi.transfer_in_place(&mut data).await.map_err(Error::Comm)?;
+    spi.transfer_in_place(&mut data)
+        .await
+        .map_err(Error::Comm)?;
 
     Ok(R::from_data(u16::from_le_bytes([data[1], data[2]])))
 }
 
 #[maybe(
-    sync(
-        cfg(not(feature = "async")),
-        keep_self,
-    ),
-    async (
-        cfg(feature = "async"),
-        keep_self,
-    )
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
 )]
 async fn spi_read_3_double_registers<
     R: RegRead<(u16, u16, u16)>,
@@ -336,7 +299,9 @@ async fn spi_read_3_double_registers<
     spi: &mut SPI,
 ) -> Result<R::Output, Error<CommE>> {
     let mut data = [SPI_RW | SPI_MS | R::ADDR, 0, 0, 0, 0, 0, 0];
-    spi.transfer_in_place(&mut data).await.map_err(Error::Comm)?;
+    spi.transfer_in_place(&mut data)
+        .await
+        .map_err(Error::Comm)?;
 
     Ok(R::from_data((
         u16::from_le_bytes([data[1], data[2]]),
