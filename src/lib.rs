@@ -102,6 +102,7 @@
 //! ```
 
 #![deny(unsafe_code, missing_docs)]
+#![allow(async_fn_in_trait)]
 #![no_std]
 
 use core::marker::PhantomData;
