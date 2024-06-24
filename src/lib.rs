@@ -1,6 +1,7 @@
 //! This is a platform agnostic Rust driver for the LSM303AGR ultra-compact
 //! high-performance eCompass module: ultra-low-power 3D accelerometer and
 //! 3D magnetometer using the [`embedded-hal`] traits.
+//! This driver also supports the [`embedded-hal-async`] traits if the `async` feature is enabled.
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
@@ -100,8 +101,12 @@
 //! }
 //! # }
 //! ```
+//!
+//! For an example of using the async support of this driver on a micro:bit V2,
+//! have a look at [microbit-v2 example](https://github.com/eldruin/lsm303agr-rs/blob/master/examples/microbit-v2.rs)
 
 #![deny(unsafe_code, missing_docs)]
+#![allow(async_fn_in_trait)]
 #![no_std]
 
 use core::marker::PhantomData;

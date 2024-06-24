@@ -1,4 +1,5 @@
 use embedded_hal::delay::DelayNs;
+use maybe_async_cfg::maybe;
 
 use crate::{
     interface::{ReadData, WriteData},
@@ -6,6 +7,10 @@ use crate::{
     AccelMode, AccelOutputDataRate, AccelScale, Error, Lsm303agr,
 };
 
+#[maybe(
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
+)]
 impl<DI, CommE, MODE> Lsm303agr<DI, MODE>
 where
     DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
@@ -15,8 +20,14 @@ where
     /// Returns `Error::InvalidInputData` if the mode is incompatible with
     /// the given output data rate.
     ///
-    #[doc = include_str!("delay.md")]
-    pub fn set_accel_mode_and_odr<D: DelayNs>(
+    /// The given `delay` is used to wait for the sensor to turn on or change modes,
+    /// according to the times specified in Table 14 and Table 15 in the [datasheet].
+    /// You can opt out of this by using a no-op delay implementation, see
+    /// [`embedded_hal_mock::delay::MockNoop`] for an example of such an
+    /// implementation.
+    /// [datasheet]: https://www.st.com/resource/en/datasheet/lsm303agr.pdf
+    /// [`embedded_hal_mock::delay::MockNoop`]: https://docs.rs/embedded-hal-mock/latest/embedded_hal_mock/delay/struct.MockNoop.html
+    pub async fn set_accel_mode_and_odr<D: DelayNs>(
         &mut self,
         delay: &mut D,
         mode: AccelMode,
@@ -26,7 +37,7 @@ where
 
         check_accel_odr_is_compatible_with_mode(odr, mode)?;
 
-        let old_mode = self.get_accel_mode();
+        let old_mode = self.get_accel_mode().await;
 
         let mut reg1 = self.ctrl_reg1_a.difference(CtrlReg1A::ODR);
 
@@ -43,17 +54,17 @@ where
         let reg4 = self.ctrl_reg4_a.difference(CtrlReg4A::HR);
 
         if mode != AccelMode::HighResolution {
-            self.iface.write_accel_register(reg4)?;
+            self.iface.write_accel_register(reg4).await?;
             self.ctrl_reg4_a = reg4;
         }
 
-        self.iface.write_accel_register(reg1)?;
+        self.iface.write_accel_register(reg1).await?;
         self.ctrl_reg1_a = reg1;
         self.accel_odr = odr;
 
         if mode == AccelMode::HighResolution {
             let reg4 = reg4.union(CtrlReg4A::HR);
-            self.iface.write_accel_register(reg4)?;
+            self.iface.write_accel_register(reg4).await?;
             self.ctrl_reg4_a = reg4;
         }
 
@@ -66,7 +77,7 @@ where
     }
 
     /// Get the accelerometer mode
-    pub fn get_accel_mode(&mut self) -> AccelMode {
+    pub async fn get_accel_mode(&mut self) -> AccelMode {
         let power_down = self.ctrl_reg1_a.intersection(CtrlReg1A::ODR).is_empty();
         let lp_enabled = self.ctrl_reg1_a.contains(CtrlReg1A::LPEN);
         let hr_enabled = self.ctrl_reg4_a.contains(CtrlReg4A::HR);
@@ -87,15 +98,15 @@ where
     /// This changes the scale at which the acceleration is read.
     /// `AccelScale::G2` for example can return values between -2g and +2g
     /// where g is the gravity of the earth (~9.82 m/s²).
-    pub fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE>> {
+    pub async fn set_accel_scale(&mut self, scale: AccelScale) -> Result<(), Error<CommE>> {
         let reg4 = self.ctrl_reg4_a.with_scale(scale);
-        self.iface.write_accel_register(reg4)?;
+        self.iface.write_accel_register(reg4).await?;
         self.ctrl_reg4_a = reg4;
         Ok(())
     }
 
     /// Get accelerometer scaling factor
-    pub fn get_accel_scale(&self) -> AccelScale {
+    pub async fn get_accel_scale(&self) -> AccelScale {
         self.ctrl_reg4_a.scale()
     }
 }

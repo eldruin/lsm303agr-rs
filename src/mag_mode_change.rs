@@ -1,18 +1,24 @@
+use maybe_async_cfg::maybe;
+
 use crate::{
     interface::{ReadData, WriteData},
     mode, Error, Lsm303agr, ModeChangeError, PhantomData,
 };
 
+#[maybe(
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
+)]
 impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
 where
     DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Change the magnetometer to continuous measurement mode
-    pub fn into_mag_continuous(
+    pub async fn into_mag_continuous(
         mut self,
     ) -> Result<Lsm303agr<DI, mode::MagContinuous>, ModeChangeError<CommE, Self>> {
         let cfg = self.cfg_reg_a_m.continuous_mode();
-        match self.iface.write_mag_register(cfg) {
+        match self.iface.write_mag_register(cfg).await {
             Err(error) => Err(ModeChangeError { error, dev: self }),
             Ok(_) => Ok(Lsm303agr {
                 iface: self.iface,
@@ -32,6 +38,10 @@ where
     }
 }
 
+#[maybe(
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
+)]
 impl<DI, CommE> Lsm303agr<DI, mode::MagContinuous>
 where
     DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
@@ -40,11 +50,11 @@ where
     ///
     /// After this the magnetometer is in idle mode until a one-shot measurement
     /// is started.
-    pub fn into_mag_one_shot(
+    pub async fn into_mag_one_shot(
         mut self,
     ) -> Result<Lsm303agr<DI, mode::MagOneShot>, ModeChangeError<CommE, Self>> {
         let cfg = self.cfg_reg_a_m.idle_mode();
-        match self.iface.write_mag_register(cfg) {
+        match self.iface.write_mag_register(cfg).await {
             Err(error) => Err(ModeChangeError { error, dev: self }),
             Ok(_) => Ok(Lsm303agr {
                 iface: self.iface,
