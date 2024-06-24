@@ -21,16 +21,17 @@ jobs:
           - thumbv7em-none-eabi
           - thumbv7em-none-eabihf
           - thumbv7m-none-eabi
+        features: ['', 'async']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
           targets: ${{ matrix.TARGET }}
 
       - name: Checkout CI scripts
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'eldruin/rust-driver-ci-scripts'
           ref: 'master'
@@ -39,14 +40,14 @@ jobs:
       - run: ./ci/patch-no-std.sh
         if: ${{ ! contains(matrix.TARGET, 'x86_64') }}
 
-      - run: cargo build --target=${{ matrix.TARGET }}
+      - run: cargo build --target=${{ matrix.TARGET }} --features=${{ matrix.features }}
 
   checks:
     name: Checks
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
@@ -60,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.79.0
@@ -78,7 +79,7 @@ jobs:
         TARGET: [x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -93,16 +94,15 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    container:
-      image: xd009642/tarpaulin:latest
-      options: --security-opt seccomp=unconfined
     steps:
-
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Run cargo-tarpaulin
-        run: cargo tarpaulin --out Lcov -- --test-threads 1
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Generate code coverage
+        run: cargo llvm-cov --workspace --lcov --output-path lcov.info
 
       - name: upload to Coveralls
         uses: coverallsapp/github-action@master
