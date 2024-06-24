@@ -21,7 +21,7 @@ maybe-async-cfg = "0.2.4"
 
 # Test dependencies
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
-embedded-hal-mock = { version = "0.10", default-features = false, features = ["eh1"] }
+embedded-hal-mock = { version = "0.11", default-features = false, features = ["eh1", "embedded-hal-async"] }
 
 # Dependencies for the linux example
 [target.'cfg(target_os = "linux")'.dev-dependencies]
@@ -39,8 +39,7 @@ embassy-time = "0.3.1"
 panic-rtt-target = "0.1.3"
 
 [features]
-default = ["async"]
-async = ["dep:embedded-hal-async", "embedded-hal-mock/embedded-hal-async"]
+async = ["dep:embedded-hal-async"]
 # Here just so `cargo test` doesn't invoke a build of the microbit-v2 example
 microbit-example = []
 
