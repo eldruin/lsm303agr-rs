@@ -87,6 +87,8 @@ fn main() {
 }
 ```
 
+For an example of using the async support of this driver on a micro:bit V2, have a look at [microbit-v2 example](./examples/microbit-v2.rs).
+
 ## Support
 
 For questions, issues, feature requests, and other changes, please file an
