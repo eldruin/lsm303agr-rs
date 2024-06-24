@@ -22,7 +22,13 @@ where
 {
     /// Set magnetometer power/resolution mode and output data rate.
     ///
-    // #[doc = include_str!("delay.md")]
+    /// The given `delay` is used to wait for the sensor to turn on or change modes,
+    /// according to the times specified in Table 14 and Table 15 in the [datasheet].
+    /// You can opt out of this by using a no-op delay implementation, see
+    /// [`embedded_hal_mock::delay::MockNoop`] for an example of such an
+    /// implementation.
+    /// [datasheet]: https://www.st.com/resource/en/datasheet/lsm303agr.pdf
+    /// [`embedded_hal_mock::delay::MockNoop`]: https://docs.rs/embedded-hal-mock/latest/embedded_hal_mock/delay/struct.MockNoop.html
     pub async fn set_mag_mode_and_odr<D: DelayNs>(
         &mut self,
         delay: &mut D,
@@ -97,16 +103,34 @@ where
     }
 }
 
-#[maybe(
-    sync(cfg(not(feature = "async")), keep_self,),
-    async(cfg(feature = "async"), keep_self,)
-)]
 impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
 where
     DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
 {
     /// Get the measured magnetic field.
-    pub async fn magnetic_field(&mut self) -> nb::Result<MagneticField, Error<CommE>> {
+    #[cfg(feature = "async")]
+    pub async fn magnetic_field(&mut self) -> Result<MagneticField, Error<CommE>> {
+        loop {
+            match self.magnetic_field_inner().await {
+                Err(nb::Error::WouldBlock) => continue,
+                Err(nb::Error::Other(e)) => return Err(e),
+                Ok(r) => return Ok(r),
+            }
+        }
+    }
+
+    #[cfg(not(feature = "async"))]
+    /// Get the measured magnetic field.
+    pub fn magnetic_field(&mut self) -> nb::Result<MagneticField, Error<CommE>> {
+        self.magnetic_field_inner()
+    }
+
+    #[maybe(
+        sync(cfg(not(feature = "async")), keep_self,),
+        async(cfg(feature = "async"), keep_self,)
+    )]
+    #[inline]
+    async fn magnetic_field_inner(&mut self) -> nb::Result<MagneticField, Error<CommE>> {
         let status = self.mag_status().await?;
         if status.xyz_new_data() {
             Ok(self
@@ -124,7 +148,16 @@ where
             Err(nb::Error::WouldBlock)
         }
     }
+}
 
+#[maybe(
+    sync(cfg(not(feature = "async")), keep_self,),
+    async(cfg(feature = "async"), keep_self,)
+)]
+impl<DI, CommE> Lsm303agr<DI, mode::MagOneShot>
+where
+    DI: ReadData<Error = Error<CommE>> + WriteData<Error = Error<CommE>>,
+{
     /// Enable the magnetometer's built in offset cancellation.
     ///
     /// Offset cancellation has to be **managed by the user** in **single measurement** (OneShot) mode averaging
